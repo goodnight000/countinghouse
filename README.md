@@ -21,6 +21,7 @@ anything about your money in chat.
   notes live as plain markdown pages the agent reads before it answers.
 
 ![Taxes](docs/taxes.png)
+![Dark mode](docs/overview-dark.png)
 ![Agent chat](docs/agent-chat.png)
 
 ## Run it

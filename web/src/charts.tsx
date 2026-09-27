@@ -123,7 +123,7 @@ export function RunwayChart({ cash, months, burn, zeroDate }: { cash: number; mo
               <text x={left - 10} y={y(t * max) + 4} textAnchor="end" fontSize="11" fill="var(--ink-3)">{compact(t * max)}</text>
             </g>
           ))}
-          <path d={area} fill="var(--in)" opacity="0.1" />
+          <path d={area} fill="var(--in)" style={{ opacity: "var(--area)" }} />
           <path d={line(0, nowI)} fill="none" stroke="var(--in)" strokeWidth="2" strokeLinejoin="round" />
           <path d={line(nowI, pts.length - 1)} fill="none" stroke="var(--in)" strokeWidth="2" strokeDasharray="4 4" />
           <line x1={x(nowI)} x2={x(nowI)} y1={top} y2={y(0)} stroke="var(--ink-4)" strokeDasharray="2 3" />
@@ -131,8 +131,8 @@ export function RunwayChart({ cash, months, burn, zeroDate }: { cash: number; mo
           <circle cx={x(nowI)} cy={y(cash)} r="4" fill="var(--in)" stroke="var(--surface)" strokeWidth="2" />
           <circle cx={x(pts.length - 1)} cy={y(0)} r="4" fill="var(--bad)" stroke="var(--surface)" strokeWidth="2" />
           <line x1={x(pts.length - 1)} x2={x(pts.length - 1)} y1={top} y2={y(0)} stroke="var(--bad)" strokeDasharray="2 3" opacity="0.6" />
-          <text x={x(pts.length - 1) - 6} y={top + 10} textAnchor="end" fontSize="11" fontWeight="600" fill="var(--bad)">Zero cash · {monthLong(zeroDate)}</text>
-          {pts.map((p, i) => (i % 3 === 0 ? <text key={p.m} x={x(i)} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--ink-3)">{monthShort(p.m)}{p.m.endsWith('-01') ? ` ’${p.m.slice(2, 4)}` : ''}</text> : null))}
+          <text x={x(pts.length - 1) - 6} y={top + 10} textAnchor="end" fontSize="11" fontWeight="600" fill="var(--bad)">{width < 560 ? `$0 · ${monthShort(zeroDate)} ’${zeroDate.slice(2, 4)}` : `Zero cash · ${monthLong(zeroDate)}`}</text>
+          {pts.map((p, i) => (i % (width < 560 ? 6 : 3) === 0 ? <text key={p.m} x={x(i)} y={H - 6} textAnchor="middle" fontSize="11" fill="var(--ink-3)">{monthShort(p.m)}{p.m.endsWith('-01') ? ` ’${p.m.slice(2, 4)}` : ''}</text> : null))}
           {hp && hover != null && <circle cx={x(hover)} cy={y(hp.v)} r="4" fill="var(--surface)" stroke="var(--in)" strokeWidth="2" />}
         </svg>
       )}

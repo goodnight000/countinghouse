@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Category, Flag, Provider, Summary, Txn } from '../../shared/types'
 import { CATEGORIES, Icon, PROVIDERS, cents, categoryIcon, dateLong, dateShort, money, monthLong, providerIcon, providerName, useApi } from './lib'
 import { Loading } from './App'
@@ -10,6 +10,9 @@ const FLAGS: Record<Flag, { label: string; icon: string; tone: string }> = {
   needs_review: { label: 'Needs review', icon: 'search', tone: 'info' },
   '1099': { label: '1099', icon: 'file', tone: 'info' },
 }
+
+const ROW_H = 56
+const OVERSCAN = 8
 
 const params = () => new URLSearchParams(location.hash.split('?')[1] ?? '')
 
@@ -25,12 +28,41 @@ export default function Transactions() {
   useEffect(() => { const t = setTimeout(() => setDq(q), 180); return () => clearTimeout(t) }, [q])
 
   const qs = new URLSearchParams({ month, category, source, q: dq }).toString()
-  const { data, error } = useApi<Txn[]>(`/api/transactions?${qs}`)
+  const { data, error, setData } = useApi<Txn[]>(`/api/transactions?${qs}`)
+  const listRef = useRef<HTMLDivElement>(null)
+  const [scroll, setScroll] = useState({ top: 0, h: 800 })
+  const [reviewing, setReviewing] = useState(false)
+  const [reviewErr, setReviewErr] = useState<string | null>(null)
+  useEffect(() => {
+    const el = listRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setScroll(s => ({ ...s, h: el.clientHeight })))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [data != null])
+  useEffect(() => { listRef.current?.scrollTo(0, 0) }, [qs, flags])
+  useEffect(() => setReviewErr(null), [selId])
   const months = useApi<Summary>('/api/summary').data?.months.map(m => m.month).reverse() ?? []
 
   const rows = useMemo(() => (data ?? []).filter(t => flags.every(f => t.flags.includes(f))), [data, flags])
   const flagCount = (f: Flag) => (data ?? []).filter(t => t.flags.includes(f)).length
   const sel = rows.find(t => t.id === selId) ?? rows[0]
+  const picked = selId != null && rows.some(t => t.id === selId)
+  const first = Math.max(0, Math.floor(scroll.top / ROW_H) - OVERSCAN)
+  const last = Math.min(rows.length, Math.ceil((scroll.top + scroll.h) / ROW_H) + OVERSCAN)
+  const reviewable = sel?.flags.some(f => f === 'unusual' || f === 'needs_review')
+
+  async function markReviewed(t: Txn) {
+    setReviewing(true); setReviewErr(null)
+    try {
+      const r = await fetch(`/api/transactions/${encodeURIComponent(t.id)}/review`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({}) })
+      if (!r.ok) throw new Error(r.status === 404 ? 'Countinghouse could not find this transaction.' : `Could not save (${r.status}). Try again.`)
+      const body = await r.json().catch(() => null)
+      const upd: Txn = body && body.id === t.id ? body : { ...t, flags: t.flags.filter(f => f !== 'unusual' && f !== 'needs_review') }
+      setData(cur => cur?.map(x => (x.id === t.id ? upd : x)) ?? cur)
+    } catch (e) { setReviewErr((e as Error).message) }
+    finally { setReviewing(false) }
+  }
   const real = rows.filter(t => t.category !== 'Transfers')
   const totalIn = real.reduce((a, t) => a + (t.amount > 0 ? t.amount : 0), 0)
   const totalOut = real.reduce((a, t) => a + (t.amount < 0 ? -t.amount : 0), 0)
@@ -73,26 +105,33 @@ export default function Transactions() {
 
       {!data ? <Loading error={error} what="transactions" /> : (
         <div className="tx-wrap">
-          <div className="rows tx-list">
-            <div className="row head tx-row"><span>Date</span><span>Vendor</span><span>Category</span><span>Source</span><span className="right">Amount</span></div>
-            {rows.length === 0 && <div className="empty">No transactions match these filters.</div>}
-            {rows.slice(0, 400).map(t => (
-              <button key={t.id} className={`row tx-row${sel?.id === t.id ? ' sel' : ''}`} onClick={() => setSelId(t.id)}>
-                <span className="muted num">{dateShort(t.date)}</span>
-                <span className="tx-v ellip">
-                  <b className="ellip">{t.vendor}
-                    {t.flags.length > 0 && <span className="flags" style={{ display: 'inline-flex', marginLeft: 8, verticalAlign: 'middle' }}>{t.flags.map(f => <span key={f} className={`tag ${FLAGS[f].tone}`}><Icon name={FLAGS[f].icon} size={13} />{FLAGS[f].label}</span>)}</span>}
-                  </b>
-                  <span className="ellip">{t.description}</span>
-                </span>
-                <span className="ellip" style={{ display: 'flex', gap: 6, alignItems: 'center', color: 'var(--ink-2)' }}><Icon name={categoryIcon[t.category] ?? 'tag'} size={15} />{t.category}</span>
-                <span className="muted">{providerName[t.source]}</span>
-                <span className={`amt${t.amount > 0 ? ' pos' : ''}`}>{t.amount > 0 ? '+' : '−'}{cents(Math.abs(t.amount))}</span>
-              </button>
-            ))}
+          <div className="rows tx-box">
+            <div className="row head tx-row"><span>Date</span><span>Vendor</span><span className="tx-cat">Category</span><span className="tx-src">Source</span><span className="right">Amount</span></div>
+            <div className="tx-list" ref={listRef} onScroll={e => setScroll({ top: e.currentTarget.scrollTop, h: e.currentTarget.clientHeight })}>
+              {rows.length === 0 && <div className="empty">No transactions match these filters.</div>}
+              <div style={{ height: rows.length * ROW_H, position: 'relative' }}>
+                {rows.slice(first, last).map((t, k) => {
+                  const i = first + k
+                  return (
+                    <button key={t.id} style={{ top: i * ROW_H, height: ROW_H }} className={`row tx-row vrow${i === 0 ? ' first' : ''}${sel?.id === t.id ? ' sel' : ''}`} onClick={() => setSelId(t.id)}>
+                      <span className="muted num tx-date">{dateShort(t.date)}</span>
+                      <span className="tx-v">
+                        <b className="ellip">{t.vendor}
+                          {t.flags.length > 0 && <span className="flags inline">{t.flags.map(f => <span key={f} className={`tag ${FLAGS[f].tone}`}><Icon name={FLAGS[f].icon} size={13} /><span className="tag-l">{FLAGS[f].label}</span></span>)}</span>}
+                        </b>
+                        <span className="ellip">{t.description}</span>
+                      </span>
+                      <span className="ellip tx-cat"><Icon name={categoryIcon[t.category] ?? 'tag'} size={15} />{t.category}</span>
+                      <span className="muted tx-src">{providerName[t.source]}</span>
+                      <span className={`amt${t.amount > 0 ? ' pos' : ''}`}>{t.amount > 0 ? '+' : '−'}{cents(Math.abs(t.amount))}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
           </div>
 
-          <aside className="detail">
+          <aside className={`detail${picked ? ' picked' : ''}`}>
             {sel ? <>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span className="int-ic"><Icon name={providerIcon[sel.source]} /></span>
@@ -107,6 +146,15 @@ export default function Transactions() {
                 <dt>Receipt</dt><dd>{sel.receipt ? 'Attached' : <span style={{ color: 'var(--warn)' }}>Missing</span>}</dd>
               </dl>
               {sel.note && <div className="note">{sel.note}</div>}
+              {reviewable && (
+                <div className="review">
+                  <button className="btn primary" onClick={() => markReviewed(sel)} disabled={reviewing}>
+                    <Icon name="check-circle" size={15} />{reviewing ? 'Saving' : 'Mark reviewed'}
+                  </button>
+                  <span className="sub">{reviewErr ?? 'Clears the review flag and tells the agent this charge is expected.'}</span>
+                </div>
+              )}
+              <button className="btn detail-close" onClick={() => setSelId(null)}><Icon name="x" size={15} />Close</button>
             </> : <div className="muted">Select a transaction.</div>}
           </aside>
         </div>
