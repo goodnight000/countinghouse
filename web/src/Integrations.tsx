@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Integration } from '../../shared/types'
-import { Icon, ago, money, post, providerIcon, useApi } from './lib'
+import { Icon, ago, post, providerIcon, useApi, Num } from './lib'
 import { Loading } from './App'
 
 const KIND: Record<Integration['kind'], string> = { bank: 'Bank', card: 'Corporate card', revenue: 'Revenue', payroll: 'Payroll', cloud: 'Cloud bill', equity: 'Cap table' }
@@ -50,8 +50,8 @@ export default function Integrations({ onSynced }: { onSynced?: () => void }) {
       <div className="int-summary">
         <div><span className="sub">Connected</span><b>{data.filter(i => i.status !== 'error').length} of {data.length}</b></div>
         <div><span className="sub">Live API</span><b>{live} of {data.length}</b></div>
-        <div><span className="sub">Records</span><b>{records.toLocaleString('en-US')}</b></div>
-        <div><span className="sub">Net balance</span><b>{money(balance)}</b></div>
+        <div><span className="sub">Records</span><b><Num value={records} fmt={n => Math.round(n).toLocaleString('en-US')} k="int-rec" /></b></div>
+        <div><span className="sub">Net balance</span><b><Num value={balance} k="int-bal" delay={60} /></b></div>
       </div>
 
       <div className="rows">
@@ -65,8 +65,8 @@ export default function Integrations({ onSynced }: { onSynced?: () => void }) {
               <span className="int-name"><b>{i.name}</b><span>{KIND[i.kind]}{i.accountMask ? ` · ${i.accountMask}` : ''}</span></span>
               <span>{i.mode === 'live' ? <span className="tag good"><Icon name="bolt" size={13} />Live API</span> : <span className="tag">Sample data</span>}</span>
               <span className={`status ${status}`}><span className="dot" />{status === 'syncing' ? 'Syncing…' : status === 'error' ? 'Error' : <span className="muted">Synced {ago(i.lastSync).toLowerCase()}</span>}</span>
-              <span className="num right">{i.records.toLocaleString('en-US')}</span>
-              <span className="num right">{i.balance != null ? money(i.balance) : <span className="muted">—</span>}</span>
+              <span className="num right"><Num value={i.records} fmt={n => Math.round(n).toLocaleString('en-US')} k={'int-r-' + i.id} duration={450} /></span>
+              <span className="num right">{i.balance != null ? <Num value={i.balance} k={'int-b-' + i.id} duration={450} /> : <span className="muted">—</span>}</span>
               <button className={`btn sync-btn right${syncing ? ' ic-loop' : ''}`} onClick={() => syncOne(i.id)} disabled={syncing}>
                 <Icon name="refresh" size={15} />{syncing ? 'Syncing' : 'Sync'}
               </button>

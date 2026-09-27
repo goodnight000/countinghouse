@@ -1,5 +1,5 @@
 import type { Category, FranchiseTax, Insight, MonthStat, Summary, TaxEvent, TaxOverview, Txn, VendorStat, Provider } from "../../shared/types";
-import { ASOF, CAP_TABLE, HEADCOUNT, MONTHS } from "./mock";
+import { ASOF, CAP_TABLE, HEADCOUNT, MONTHS, PLAN } from "./mock";
 import { CONTRACTOR_W9, SAAS_LOGINS, days } from "./rules";
 
 const NON_SPEND: Category[] = ["Transfers", "Revenue", "Interest"];
@@ -64,7 +64,7 @@ export function franchiseTax(grossAssets: number): FranchiseTax & { assumedPar: 
   };
 }
 
-function addDays(date: string, n: number) {
+export function addDays(date: string, n: number) {
   return new Date(Date.parse(date) + n * 86_400_000).toISOString().slice(0, 10);
 }
 
@@ -91,6 +91,11 @@ export function contractors(txns: Txn[]) {
   return [...paid].filter(([, p]) => p > 600).map(([name, p]) => ({ name, paid: r0(p), w9: CONTRACTOR_W9[name] ?? false })).sort((a, b) => b.paid - a.paid);
 }
 
+const mon = (d: string) => new Date(d.slice(0, 7) + "-15T12:00:00Z").toLocaleDateString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+const day = (d: string) => new Date(d + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+const RANK = ["runway", "w9", "aws-spike", "unused-saas", "franchise-tax", "unusual", "duplicate", "receipts", "mrr"];
+const rank = (id: string) => (RANK.includes(id) ? RANK.indexOf(id) : 99);
+
 export function summary(txns: Txn[], bal: Balances): Summary {
   const c = core(txns, bal);
   const vendors = vendorStats(txns).filter((v) => !["Payroll", "Payroll Taxes"].includes(v.category));
@@ -98,10 +103,10 @@ export function summary(txns: Txn[], bal: Balances): Summary {
   const insights: Insight[] = [];
   if (aws) {
     const pct = Math.round(((aws.sparkline[11]! - aws.sparkline[8]!) / aws.sparkline[8]!) * 100);
-    insights.push({ id: "aws-spike", severity: "warn", title: `AWS spend up ${pct}% since July`, body: `GPU instances (EC2 p4d) came online in July. ${usd(aws.sparkline[11]!)} in September vs ${usd(aws.sparkline[8]!)} in June. Reserved capacity or spot could cut this ~30%.`, metric: `${usd(aws.lastMonth)}/mo` });
+    insights.push({ id: "aws-spike", severity: "warn", title: `AWS spend up ${pct}% since June`, body: `GPU instances (EC2 p4d) came online in July. ${usd(aws.sparkline[11]!)} in September vs ${usd(aws.sparkline[8]!)} in June. Reserved capacity or spot could cut this ~30%.`, metric: `${usd(aws.lastMonth)}/mo` });
   }
   const dups = txns.filter((t) => t.flags.includes("duplicate"));
-  for (const d of dups.slice(0, 1)) insights.push({ id: "duplicate", severity: "warn", title: `Duplicate ${d.vendor} charge: ${usd(-d.amount)}`, body: `${d.vendor} billed ${usd(-d.amount)} twice (${d.date}, ${d.account}). Ask for a refund.`, metric: usd(-d.amount) });
+  for (const d of dups.slice(0, 1)) insights.push({ id: "duplicate", severity: "warn", title: `Duplicate ${d.vendor} charge: ${usd(-d.amount)}`, body: `${d.vendor} billed ${usd(-d.amount)} twice (${day(d.date)}, ${d.account}). Ask for a refund.`, metric: usd(-d.amount) });
   const ft = franchiseTax(c.grossAssets);
   insights.push({ id: "franchise-tax", severity: "warn", title: `Delaware will bill you ${usd(ft.authorizedSharesMethod)}. You actually owe ~${usd(ft.assumedParValueMethod)}`, body: `Delaware's notice uses the authorized-shares method (10M shares). File with the assumed par value method using ${usd(ft.grossAssets)} of gross assets and save ${usd(ft.savings)}. Due Mar 1, 2027.`, metric: `save ${usd(ft.savings)}` });
   const sf = vendors.find((v) => v.vendor === "Salesforce");
@@ -109,13 +114,15 @@ export function summary(txns: Txn[], bal: Balances): Summary {
   const noReceipt = txns.filter((t) => t.flags.includes("missing_receipt"));
   if (noReceipt.length) insights.push({ id: "receipts", severity: "info", title: `${noReceipt.length} transactions missing receipts`, body: `${usd(noReceipt.reduce((a, t) => a - t.amount, 0))} of card spend has no receipt: ${[...new Set(noReceipt.map((t) => t.vendor))].join(", ")}.`, metric: `${noReceipt.length} txns` });
   const unusual = txns.filter((t) => t.flags.includes("unusual")).sort((a, b) => a.amount - b.amount)[0];
-  if (unusual) insights.push({ id: "unusual", severity: "warn", title: `Unusual ${usd(-unusual.amount)} payment to ${unusual.vendor}`, body: `${unusual.description} on ${unusual.date}. ${unusual.note?.split(". ")[0] ?? ""}. Category: ${unusual.category}.`, metric: usd(-unusual.amount) });
+  if (unusual) insights.push({ id: "unusual", severity: "warn", title: `Unusual ${usd(-unusual.amount)} payment to ${unusual.vendor}`, body: `${unusual.description} on ${day(unusual.date)}. ${unusual.note?.split(". ")[0] ?? ""}. Category: ${unusual.category}.`, metric: usd(-unusual.amount) });
   const growth = c.mrrPrev ? ((c.mrr - c.mrrPrev) / c.mrrPrev) * 100 : 0;
   insights.push({ id: "mrr", severity: "good", title: `MRR up ${Math.round(growth)}% month over month`, body: `Stripe MRR is ${usd(c.mrr)}, up from ${usd(c.months[0]!.revenue > 0 ? txns.filter((t) => t.category === "Revenue" && t.date.startsWith(MONTHS[0]!)).reduce((a, t) => a + t.amount, 0) : 0)} a year ago.`, metric: `${usd(c.mrr)} MRR` });
   const missingW9 = contractors(txns).filter((x) => !x.w9);
-  if (missingW9.length) insights.push({ id: "w9", severity: "warn", title: `${missingW9[0]!.name} has no W-9 on file`, body: `Paid ${usd(missingW9[0]!.paid)} this year. You need a W-9 to file their 1099-NEC by Jan 31, 2027.`, metric: usd(missingW9[0]!.paid) });
-  if (c.runway < 12) insights.splice(0, 0, { id: "runway", severity: "warn", title: `${r1(c.runway)} months of runway`, body: `At ${usd(c.avg3)}/mo net burn, cash hits zero around ${c.zeroCashDate}. Start the Series A process by ${addDays(ASOF, Math.round((c.runway - 6) * 30.44)).slice(0, 7)}.`, metric: `${r1(c.runway)} mo` });
+  if (missingW9.length) insights.push({ id: "w9", severity: "warn", title: `${missingW9[0]!.name}'s W-9 is overdue`, body: `Was due Sep 15. Paid ${usd(missingW9[0]!.paid)} this year. Without it you can't file her 1099-NEC (due Jan 31, 2027) and may owe 24% backup withholding.`, metric: usd(missingW9[0]!.paid) });
+  if (c.runway < 12) insights.splice(0, 0, { id: "runway", severity: "warn", title: `${r1(c.runway)} months of runway`, body: `At ${usd(c.avg3)}/mo net burn, cash hits zero around ${mon(c.zeroCashDate)}. Start Series A prep by ${mon(addDays(ASOF, Math.round((c.runway - 9) * 30.44)))}.`, metric: `${r1(c.runway)} mo` });
+  insights.sort((a, b) => rank(a.id) - rank(b.id));
   return {
+    plan: PLAN,
     company: { name: "Lumen Labs", legalName: "Lumen Labs, Inc.", state: "Delaware", incorporated: "2025-02-14", stage: "Seed", employees: HEADCOUNT[11]! },
     asOf: ASOF,
     cash: {

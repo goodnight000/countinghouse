@@ -22,6 +22,7 @@ export const ACCT = {
   ramp: "Ramp Card ••5561",
   stripe: "Stripe Balance",
 };
+export const PLAN = { month: "2026-09", netBurn: 180_000, mrr: 42_000, note: "Seed plan approved Feb 2026" };
 export const HEADCOUNT = [5, 5, 6, 6, 7, 7, 8, 8, 8, 9, 9, 9];
 const TARGET_CASH = 2_103_418.27;
 

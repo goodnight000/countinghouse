@@ -1,14 +1,21 @@
 import { useEffect, useState } from 'react'
-import { Icon, useApi } from './lib'
+import { flushSync } from 'react-dom'
+import { Icon, reducedMotion, useApi } from './lib'
 import type { Summary } from '../../shared/types'
 import Overview from './Overview'
 import Transactions from './Transactions'
 import Taxes from './Taxes'
 import Integrations from './Integrations'
 import Memory from './Memory'
+import Advisor from './Advisor'
+
+const EMBED = new URLSearchParams(location.search).get('embed') === '1'
+if (EMBED) document.documentElement.dataset.embed = ''
+const THEME_PARAM = new URLSearchParams(location.search).get('theme')
 
 const SCREENS = [
   { id: 'overview', label: 'Overview', short: 'Overview', icon: 'chart' },
+  { id: 'advisor', label: 'Advisor', short: 'Advisor', icon: 'bulb' },
   { id: 'transactions', label: 'Transactions', short: 'Activity', icon: 'receipt' },
   { id: 'taxes', label: 'Taxes & deadlines', short: 'Taxes', icon: 'calendar' },
   { id: 'integrations', label: 'Integrations', short: 'Accounts', icon: 'plug' },
@@ -25,7 +32,12 @@ export default function App() {
   const [screen, setScreen] = useState<ScreenId>(fromHash)
   const [hash, setHash] = useState(location.hash)
   useEffect(() => {
-    const on = () => { setScreen(fromHash()); setHash(location.hash); window.scrollTo(0, 0) }
+    const go = () => { setScreen(fromHash()); setHash(location.hash); window.scrollTo(0, 0) }
+    const on = () => {
+      const d = document as Document & { startViewTransition?: (cb: () => void) => unknown }
+      if (d.startViewTransition && !reducedMotion()) d.startViewTransition(() => flushSync(go))
+      else go()
+    }
     addEventListener('hashchange', on)
     return () => removeEventListener('hashchange', on)
   }, [])
@@ -46,6 +58,33 @@ export default function App() {
     <button className="theme-btn" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>
       <Icon name={theme === 'dark' ? 'sun' : 'moon'} size={16} /><span className="lbl">{theme === 'dark' ? 'Light' : 'Dark'}</span>
     </button>
+  )
+
+  const docEl = (
+    <main className="main">
+      <div className="doc" key={hash.split('?')[1] ? hash : screen}>
+        {screen === 'overview' && <Overview s={summary.data} error={summary.error} />}
+        {screen === 'advisor' && <Advisor />}
+        {screen === 'transactions' && <Transactions />}
+        {screen === 'taxes' && <Taxes />}
+        {screen === 'integrations' && <Integrations onSynced={summary.reload} />}
+        {screen === 'memory' && <Memory />}
+      </div>
+    </main>
+  )
+
+  if (EMBED) return (
+    <div className="shell">
+      <header className="embedbar">
+        {SCREENS.map(s => (
+          <a key={s.id} href={`#/${s.id}`} aria-current={screen === s.id ? 'page' : undefined} title={s.label} aria-label={s.label}>
+            <Icon name={s.icon} size={16} /><span className="lbl">{s.short}</span>
+          </a>
+        ))}
+        <span className="end"><span className="asof">{asOf}</span>{themeBtn}</span>
+      </header>
+      {docEl}
+    </div>
   )
 
   return (
@@ -79,15 +118,7 @@ export default function App() {
           <a className="ask" href={ASK_URL} target="_blank" rel="noreferrer"><Icon name="chat" size={16} />Ask</a>
         </div>
       </header>
-      <main className="main">
-        <div className="doc" key={hash.split('?')[1] ? hash : screen}>
-          {screen === 'overview' && <Overview s={summary.data} error={summary.error} />}
-          {screen === 'transactions' && <Transactions />}
-          {screen === 'taxes' && <Taxes />}
-          {screen === 'integrations' && <Integrations onSynced={summary.reload} />}
-          {screen === 'memory' && <Memory />}
-        </div>
-      </main>
+      {docEl}
       <nav className="tabbar" aria-label="Sections">
         {SCREENS.map(s => (
           <a key={s.id} href={`#/${s.id}`} aria-current={screen === s.id ? 'page' : undefined}>
@@ -105,7 +136,7 @@ const ASK_URL = 'http://localhost:8081'
 // Explicit choice persists in localStorage; otherwise follow the OS setting live.
 const mq = matchMedia('(prefers-color-scheme: dark)')
 function useTheme() {
-  const [choice, setChoice] = useState<string | null>(() => localStorage.getItem('theme'))
+  const [choice, setChoice] = useState<string | null>(() => (THEME_PARAM === 'dark' || THEME_PARAM === 'light' ? THEME_PARAM : localStorage.getItem('theme')))
   const [system, setSystem] = useState(mq.matches ? 'dark' : 'light')
   useEffect(() => {
     const on = (e: MediaQueryListEvent) => setSystem(e.matches ? 'dark' : 'light')

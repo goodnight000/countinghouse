@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { icon } from './icons/icons.js'
 import type { Category, Provider } from '../../shared/types'
 
@@ -30,8 +30,8 @@ export function useApi<T>(path: string | null) {
   return { data, error, reload, setData }
 }
 
-export async function post<T>(path: string): Promise<T> {
-  const r = await fetch(path, { method: 'POST' })
+export async function post<T>(path: string, body?: unknown): Promise<T> {
+  const r = await fetch(path, body === undefined ? { method: 'POST' } : { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
   if (!r.ok) throw new Error(`${r.status}`)
   return r.json()
 }
@@ -77,3 +77,39 @@ export const categoryIcon: Record<Category, string> = {
 }
 export const CATEGORIES = Object.keys(categoryIcon) as Category[]
 export const PROVIDERS = Object.keys(providerIcon) as Provider[]
+
+export const reducedMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches
+const played = new Set<string>()
+export const firstPlay = (k: string) => !played.has(k) && (played.add(k), true)
+
+// Counts up once per session (key k), then ticks old -> new over 450ms. Ghost reserves the final width.
+export function Num({ value, fmt = money, k, delay = 0, duration = 800 }: { value: number; fmt?: (n: number) => string; k: string; delay?: number; duration?: number }) {
+  const first = useRef<boolean | null>(null)
+  if (first.current === null) first.current = firstPlay(k) && !reducedMotion()
+  const [shown, setShown] = useState(first.current ? 0 : value)
+  const cur = useRef(shown)
+  useEffect(() => {
+    const from = cur.current
+    if (from === value || reducedMotion()) { cur.current = value; setShown(value); return }
+    const dur = first.current ? duration : 450
+    const wait = first.current ? delay : 0
+    first.current = false
+    let raf = 0
+    const t0 = performance.now() + wait
+    const step = (t: number) => {
+      const p = Math.min(1, Math.max(0, (t - t0) / dur))
+      const v = from + (value - from) * (1 - (1 - p) ** 5)
+      cur.current = v; setShown(v)
+      if (p < 1) raf = requestAnimationFrame(step)
+    }
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [value])
+  return (
+    <span className="cu">
+      <span className="cu-ghost" aria-hidden>{fmt(value)}</span>
+      <span className="cu-live" aria-hidden>{fmt(shown)}</span>
+      <span className="sr-only">{fmt(value)}</span>
+    </span>
+  )
+}

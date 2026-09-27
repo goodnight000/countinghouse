@@ -1,0 +1,18 @@
+{
+  "name": "goliath-reel",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render Reel out/reel.mp4 --codec h264 --crf 18"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.527",
+    "@remotion/google-fonts": "^4.0.527",
+    "@types/react": "^19.3.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.527",
+    "typescript": "^7.0.2"
+  }
+}

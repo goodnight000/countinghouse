@@ -4,6 +4,7 @@ import { core, franchiseTax, scenario, summary, taxes, usd, vendorStats } from "
 import { MONTHS } from "./mock";
 import * as state from "./state";
 import { brainPage, brainSearch, learn, remember, review } from "./brain";
+import { adviceMarkdown, decide, getAdvice, refresh } from "./advisor";
 
 const CATEGORIES: Category[] = ["Revenue", "Interest", "Payroll", "Payroll Taxes", "Contractors", "Cloud & Infra", "AI & APIs", "Software", "Rent & Office", "Legal & Accounting", "Marketing", "Travel & Meals", "Hardware", "Insurance", "Taxes & Fees", "Bank Fees", "Transfers", "Other"];
 const obj = (properties: Record<string, unknown> = {}, required: string[] = []) => ({ type: "object", properties, required });
@@ -23,6 +24,8 @@ const TOOLS = [
   { name: "remember", description: "Save a durable note to the company's GBrain memory (as notes/<slug>) so it is available in future sessions: decisions, context from the founder, vendor quirks, follow-ups.", inputSchema: obj({ title: str("Short title"), content: str("Markdown content") }, ["title", "content"]) },
   { name: "recategorize", description: "Teach a categorization rule: every transaction from this vendor gets the new category, now and on future syncs. The rule is saved in GBrain (vendor page + policies/categorization-rules) and overrides the built-in rules. Returns what changed.", inputSchema: obj({ vendor: str("Vendor name exactly as shown in transactions, e.g. 'Brightline Events'"), category: str("New category", { enum: CATEGORIES }), reason: str("Why, in a few words") }, ["vendor", "category", "reason"]) },
   { name: "mark_reviewed", description: "Mark one transaction as reviewed (e.g. the founder confirmed an unusual charge). Clears its 'unusual' and 'needs_review' flags, removes the matching insight, and records the review with the note on the vendor's GBrain page. Survives restarts.", inputSchema: obj({ transaction_id: str("Transaction id from search_transactions, e.g. 'mercury_0650'"), note: str("Why it is fine, in a few words") }, ["transaction_id"]) },
+  { name: "get_cfo_advice", description: "CFO recommendations to extend runway, grounded in the ledger: cancel unused SaaS, refund duplicates, renegotiate AWS and AI API bills, cheaper replacements, fundraise and hiring timing, tax credits. Each has an id, monthly savings, confidence, effort, status (open/accepted/dismissed) and next step, plus runway today, if everything is adopted, and with accepted items only. Set refresh=true to regenerate (can take a minute or two).", inputSchema: obj({ refresh: { type: "boolean", description: "Regenerate the advice first and wait for it" } }) },
+  { name: "decide_advice", description: "Record the founder's decision on one CFO recommendation (accept, dismiss, or reopen) by id from get_cfo_advice, e.g. 'cut:salesforce'. Returns the new accepted savings and runway. Persists across restarts.", inputSchema: obj({ id: str("Recommendation id, e.g. 'cut:salesforce'"), status: str("Decision", { enum: ["accepted", "dismissed", "open"] }) }, ["id", "status"]) },
 ];
 
 const table = (head: string[], rows: (string | number)[][]) => `| ${head.join(" | ")} |\n|${head.map(() => "---").join("|")}|\n${rows.map((r) => `| ${r.join(" | ")} |`).join("\n")}`;
@@ -79,6 +82,17 @@ async function call(name: string, a: any): Promise<string> {
       const t = review(String(a.transaction_id), a.note ? String(a.note) : "");
       if (!t) return `No transaction with id ${a.transaction_id}. Use search_transactions to find ids.`;
       return `Reviewed ${t.id}: ${t.date} ${t.vendor} ${usd(t.amount)}. Flags now: ${t.flags.join(", ") || "none"}. Saved to GBrain (vendor page + policies/categorization-rules).`;
+    }
+    case "get_cfo_advice": {
+      if (a.refresh) await refresh();
+      const ad = getAdvice();
+      return `${ad.source === "rules" ? "Rule-based estimate (no AI model)" : `AI advice from ${ad.model}`}${ad.error ? `; last AI error: ${ad.error}` : ""}${ad.refreshing ? "; a refresh is running" : ""}\n\n${adviceMarkdown(ad)}`;
+    }
+    case "decide_advice": {
+      if (!["accepted", "dismissed", "open"].includes(a.status)) throw new Error("status must be accepted, dismissed or open");
+      const ad = decide(String(a.id), a.status);
+      if (!ad) throw new Error(`Unknown recommendation id "${a.id}". Valid ids: ${getAdvice().recommendations.map((r) => r.id).join(", ")}`);
+      return `Marked ${a.id} ${a.status}. Accepted savings now ${usd(ad.accepted.monthlySavings)}/mo; runway ${ad.accepted.runwayMonths} months.`;
     }
     case "remember": {
       const slug = remember(String(a.title), String(a.content));

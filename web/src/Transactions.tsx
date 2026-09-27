@@ -64,7 +64,8 @@ export default function Transactions() {
     finally { setReviewing(false) }
   }
   const real = rows.filter(t => t.category !== 'Transfers')
-  const totalIn = real.reduce((a, t) => a + (t.amount > 0 ? t.amount : 0), 0)
+  const totalIn = real.reduce((a, t) => a + (t.amount > 0 && t.category !== 'Interest' ? t.amount : 0), 0)
+  const interest = real.reduce((a, t) => a + (t.amount > 0 && t.category === 'Interest' ? t.amount : 0), 0)
   const totalOut = real.reduce((a, t) => a + (t.amount < 0 ? -t.amount : 0), 0)
   const toggle = (f: Flag) => setFlags(fs => (fs.includes(f) ? fs.filter(x => x !== f) : [...fs, f]))
 
@@ -73,7 +74,7 @@ export default function Transactions() {
       <header className="page-head">
         <div>
           <h1>Transactions</h1>
-          <p className="num">{data ? `${rows.length} shown · ${money(totalIn)} in · ${money(totalOut)} out, not counting transfers` : ' '}</p>
+          <p className="num">{data ? `${rows.length} shown · ${money(totalIn)} revenue · ${money(interest)} interest · ${money(totalOut)} out, not counting transfers` : ' '}</p>
         </div>
       </header>
 

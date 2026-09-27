@@ -1,0 +1,237 @@
+[
+ {
+  "scene": 0,
+  "start": 0,
+  "end": 16.9,
+  "audioStart": 0.3,
+  "audioDur": 14.57,
+  "text": "Most startups don't fail because of the product. They run out of money, or they get blindsided by a tax bill nobody saw coming. Seed-stage founders don't have a CFO. They have a spreadsheet and a bank login.",
+  "focus": []
+ },
+ {
+  "scene": 1,
+  "start": 16.9,
+  "end": 43.58,
+  "audioStart": 17.2,
+  "audioDur": 24.36,
+  "text": "Countinghouse is an open-source finance team you run yourself. It pulls every account into one ledger, keeps what it learns in GBrain as plain markdown, and puts an agent on top in QM, Y Combinator's agent harness. That agent layer is the difference: the dashboard shows you numbers, the agent acts like a CFO.",
+  "focus": []
+ },
+ {
+  "scene": 2,
+  "start": 43.58,
+  "end": 59.01,
+  "audioStart": 43.88,
+  "audioDur": 13.1,
+  "text": "It lives right inside QM. Open the Accounting tab and you get the whole company at a glance: two point one million in cash, eleven months of runway, and a plain-English read of what changed this month.",
+  "focus": [
+   {
+    "t": 45.7,
+    "x": 8,
+    "y": 163,
+    "w": 267,
+    "h": 33,
+    "label": "QM sidebar: Accounting row"
+   },
+   {
+    "t": 47.02,
+    "x": 8,
+    "y": 163,
+    "w": 267,
+    "h": 33,
+    "label": "QM sidebar: Accounting row (click)"
+   },
+   {
+    "t": 50.96,
+    "x": 304,
+    "y": 155,
+    "w": 1592,
+    "h": 296,
+    "label": "CFO brief paragraph"
+   },
+   {
+    "t": 54.4,
+    "x": 1246,
+    "y": 183,
+    "w": 650,
+    "h": 84,
+    "label": "Runway figure"
+   }
+  ]
+ },
+ {
+  "scene": 3,
+  "start": 59.01,
+  "end": 86.05,
+  "audioStart": 59.31,
+  "audioDur": 24.72,
+  "text": "The advisor, running on GPT-6 Luna, reasons over every transaction. It finds the AWS Savings Plan worth four thousand a month, the Salesforce seats nobody logs into, the ad spend that stopped paying back. Adopt them and runway grows from eleven point three to twelve point six months.",
+  "focus": [
+   {
+    "t": 59.05,
+    "x": 399,
+    "y": 7,
+    "w": 88,
+    "h": 30,
+    "label": "Advisor nav tab"
+   },
+   {
+    "t": 62.0,
+    "x": 260,
+    "y": 200,
+    "w": 1600,
+    "h": 110,
+    "label": "Advisor savings total ($/mo) and runway before -> after"
+   },
+   {
+    "t": 68,
+    "x": 304,
+    "y": 340,
+    "w": 1220,
+    "h": 64,
+    "label": "Advisor recommendation row 1"
+   },
+   {
+    "t": 70.02,
+    "x": 304,
+    "y": 404,
+    "w": 1220,
+    "h": 64,
+    "label": "Advisor recommendation row 2"
+   },
+   {
+    "t": 72.03,
+    "x": 304,
+    "y": 468,
+    "w": 1220,
+    "h": 64,
+    "label": "Advisor recommendation row 3"
+   },
+   {
+    "t": 74.05,
+    "x": 304,
+    "y": 532,
+    "w": 1220,
+    "h": 64,
+    "label": "Advisor recommendation row 4"
+   }
+  ]
+ },
+ {
+  "scene": 4,
+  "start": 86.05,
+  "end": 103.03,
+  "audioStart": 86.34,
+  "audioDur": 14.66,
+  "text": "It remembers the dates founders forget. Hover any day to see what's due and why. Delaware's franchise tax notice will say eighty-five thousand dollars. Filed the right way, you owe eight hundred fifty.",
+  "focus": [
+   {
+    "t": 86.05,
+    "x": 584,
+    "y": 7,
+    "w": 77,
+    "h": 30,
+    "label": "Taxes nav tab"
+   },
+   {
+    "t": 88.47,
+    "x": 875,
+    "y": 593,
+    "w": 41,
+    "h": 28,
+    "label": "Calendar deadline date (hover popover)"
+   },
+   {
+    "t": 91.19,
+    "x": 1332,
+    "y": 533,
+    "w": 41,
+    "h": 28,
+    "label": "Calendar deadline date (hover popover)"
+   },
+   {
+    "t": 92.5,
+    "x": 300,
+    "y": 105,
+    "w": 1600,
+    "h": 225,
+    "label": "Delaware reveal: notice $85,215 vs owe $850 vs keep $84,365"
+   },
+   {
+    "t": 103.03,
+    "x": 8,
+    "y": 209,
+    "w": 267,
+    "h": 33,
+    "label": "QM sidebar: New session row"
+   }
+  ]
+ },
+ {
+  "scene": 5,
+  "start": 103.03,
+  "end": 121.52,
+  "audioStart": 103.33,
+  "audioDur": 10.85,
+  "text": "And you can just ask. It reasons over the books, weighs the trade-offs, and reminds you what's coming up, like the overdue W-9 that blocks a 1099.",
+  "focus": [
+   {
+    "t": 105.97,
+    "x": 806,
+    "y": 516,
+    "w": 589,
+    "h": 48,
+    "label": "Chat composer"
+   },
+   {
+    "t": 113.27,
+    "x": 330,
+    "y": 60,
+    "w": 1260,
+    "h": 900,
+    "label": "chat answer"
+   }
+  ]
+ },
+ {
+  "scene": 6,
+  "start": 121.52,
+  "end": 141.25,
+  "audioStart": 121.82,
+  "audioDur": 12.12,
+  "text": "Every rule you teach it lands in GBrain, so next month it already knows. Your money, your memory, your CFO. Open source, one command to run.",
+  "focus": [
+   {
+    "t": 121.67,
+    "x": 8,
+    "y": 163,
+    "w": 267,
+    "h": 33,
+    "label": "QM sidebar: Accounting row"
+   },
+   {
+    "t": 124.37,
+    "x": 768,
+    "y": 7,
+    "w": 92,
+    "h": 30,
+    "label": "Memory nav tab"
+   },
+   {
+    "t": 127.47,
+    "x": 312,
+    "y": 280,
+    "w": 283,
+    "h": 50,
+    "label": "Memory page: Categorization rules"
+   }
+  ]
+ },
+ {
+  "scene": "end",
+  "start": 136.05,
+  "end": 141.25,
+  "text": "",
+  "focus": []
+ }
+]

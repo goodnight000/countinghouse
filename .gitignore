@@ -9,3 +9,6 @@ qm/.generated/
 screenshots/
 vendor/
 .run/
+demo/out/
+demo/.cache/
+server/data/

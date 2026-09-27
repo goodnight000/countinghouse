@@ -29,6 +29,9 @@ export const slugify = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-"
 const front = (title: string, type: string, extra: Record<string, string | number> = {}) =>
   `---\ntitle: "${title.replace(/"/g, "'")}"\ntype: ${type}\n${Object.entries(extra).map(([k, v]) => `${k}: ${typeof v === "string" ? JSON.stringify(v) : v}`).join("\n")}${Object.keys(extra).length ? "\n" : ""}updated: ${new Date().toISOString()}\n---\n`;
 
+export { front };
+export function putPage(slug: string, title: string, type: string, markdown: string) { setPage(slug, title, type, markdown); }
+
 function setPage(slug: string, title: string, type: string, markdown: string) {
   const body = markdown.replace(/^---[\s\S]*?---\n/, "").replace(/[#*|>\[\]`_-]/g, " ").replace(/\s+/g, " ").trim();
   const prev = mirror.get(slug);
@@ -74,7 +77,7 @@ export function renderAll() {
     `## Numbers as of ${ASOF}\n\n- Cash: **${usd(s.cash.total)}** (${s.cash.byAccount.map((a) => `${a.name} ${usd(a.balance)}`).join(", ")})\n- Net burn: ${usd(s.burn.lastMonth)} last month, ${usd(s.burn.avg3mo)} 3-month average\n- Runway: **${s.runwayMonths} months**, zero cash around ${s.zeroCashDate}\n- MRR: ${usd(s.mrr)} (${s.mrrGrowthPct}% MoM)\n\n` +
     `## What needs attention\n\n${s.insights.map((i) => `- **${i.title}**: ${i.body}`).join("\n")}\n\n` +
     `## Accounts\n\n${state.PROVIDERS.map((p) => `- [[accounts/${p}]]`).join("\n")}\n\n## Months\n\n${MONTHS.map((m) => `[[months/${m}]]`).join(" · ")}\n\n` +
-    `## Related\n\n- [[taxes/calendar]] · [[taxes/delaware-franchise-tax]] · [[policies/categorization-rules]]\n- Top vendors: ${s.topVendors.slice(0, 8).map((v) => `[[vendors/${slugify(v.vendor)}]]`).join(", ")}\n`);
+    `## Related\n\n- [[advisor/latest]]\n- [[taxes/calendar]] · [[taxes/delaware-franchise-tax]] · [[policies/categorization-rules]]\n- Top vendors: ${s.topVendors.slice(0, 8).map((v) => `[[vendors/${slugify(v.vendor)}]]`).join(", ")}\n`);
 
   for (const i of state.integrations.values()) {
     const own = t.filter((x) => x.source === i.id);

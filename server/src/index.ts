@@ -4,6 +4,7 @@ import { PROVIDERS, balances, integrations, sync, syncAll, txns, filterTxns } fr
 import * as state from "./state";
 import { brainPage, brainPages, initBrain, review } from "./brain";
 import { handleMcp } from "./mcp";
+import { decide, getAdvice, initAdvisor, refresh } from "./advisor";
 
 const CORS = {
   "access-control-allow-origin": "*",
@@ -14,7 +15,7 @@ const CORS = {
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: CORS });
 
 const handler = {
-  idleTimeout: 60,
+  idleTimeout: 200, // POST /api/advice/refresh?wait=1 can wait on a 180s model call
   async fetch(req: Request) {
     const url = new URL(req.url);
     const p = url.pathname;
@@ -46,6 +47,19 @@ const handler = {
         const markdown = await brainPage(slug);
         return markdown == null ? json({ error: "not found", slug }, 404) : json({ slug, markdown });
       }
+      if (p === "/api/advice") return json(getAdvice());
+      if (p === "/api/advice/refresh" && req.method === "POST") {
+        const pr = refresh();
+        if (url.searchParams.get("wait") === "1") await pr;
+        return json(getAdvice());
+      }
+      const ad = p.match(/^\/api\/advice\/([^/]+)\/decision$/);
+      if (ad && req.method === "POST") {
+        const body: any = await req.json().catch(() => ({}));
+        if (!["open", "accepted", "dismissed"].includes(body?.status)) return json({ error: "status must be open, accepted or dismissed" }, 400);
+        const a = decide(decodeURIComponent(ad[1]!), body.status);
+        return a ? json(a) : json({ error: "unknown recommendation" }, 404);
+      }
       if (p === "/" || p === "/health") return json({ ok: true, name: "countinghouse", txns: state.txns.length });
       return json({ error: "not found" }, 404);
     } catch (e) {
@@ -64,4 +78,5 @@ const t0 = Date.now();
 await syncAll();
 console.log(`initial sync: ${state.txns.length} txns in ${Date.now() - t0}ms`);
 initBrain();
+initAdvisor();
 // GBrain CLI: GBRAIN_CLI, else <repo>/vendor/gbrain/src/cli.ts, else ~/Developer/gbrain-oss/src/cli.ts

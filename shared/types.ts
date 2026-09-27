@@ -74,6 +74,7 @@ export interface Summary {
   mrrGrowthPct: number;         // month over month
   topVendors: VendorStat[];     // top 12 by total12mo
   insights: Insight[];
+  plan?: { month: string; netBurn: number; mrr: number; note: string };
 }
 
 export interface TaxEvent {
@@ -121,3 +122,54 @@ export interface BrainPage {
 //   GET  /api/brain                                   -> BrainPage[]
 //   GET  /api/brain/page?slug=vendors/aws             -> { slug: string; markdown: string }
 //   POST /mcp                                         -> MCP (streamable HTTP) for the QM agent
+//   GET  /api/advice                    -> Advice   (returns immediately, never waits on the LLM; always 200)
+//   POST /api/advice/refresh[?wait=1]   -> Advice   (starts/joins single-flight AI run; refreshing=true unless wait=1)
+//   POST /api/advice/:id/decision       -> Advice   body { status: AdviceStatus }  (id URL-encoded, contains ':'; 400 bad status, 404 unknown id)
+//
+// MCP tools (server/src/mcp.ts):
+//   get_cfo_advice { refresh?: boolean }                                  -> markdown table incl. id column
+//   decide_advice  { id: string; status: "accepted"|"dismissed"|"open" }  -> "Marked <id> <status>. Accepted savings now $X/mo; runway N months."
+
+
+export type AdviceKind = "cut" | "renegotiate" | "build" | "timing" | "revenue" | "compliance";
+export type Level = "high" | "medium" | "low";
+export type AdviceStatus = "open" | "accepted" | "dismissed";
+
+export interface Recommendation {
+  id: string;              // `${kind}:${slug}`, stable across refreshes/models/restarts, e.g. "cut:salesforce". Decisions key on it.
+  kind: AdviceKind;
+  title: string;           // <= 90 chars
+  rationale: string;       // 1-3 sentences citing ledger numbers, <= 400 chars
+  monthlySavings: number;  // recurring burn reduction, USD/mo, >= 0 (0 for timing/compliance)
+  annualSavings: number;   // always monthlySavings * 12 (server sets it)
+  oneTimeCash: number;     // one-off cash back (refunds, credits), >= 0
+  confidence: Level;
+  effort: Level;
+  evidence: { vendors: string[]; txnIds: string[] };  // only vendors/ids that exist in the ledger
+  action: string;          // one imperative next step
+  status: AdviceStatus;    // merged from persisted decisions (default "open")
+  decidedAt?: string;      // ISO
+}
+
+export interface RunwayWhatIf {
+  monthlySavings: number;  // sum over the included recs
+  oneTimeCash: number;
+  burn: number;            // baseline.burn - monthlySavings
+  runwayMonths: number;    // r1((cash + oneTimeCash) / burn)
+  runwayGained: number;    // r1(runwayMonths - baseline.runwayMonths)
+  zeroCashDate: string;    // YYYY-MM-DD = addDays(ASOF, round(runwayMonths * 30.44))
+}
+
+export interface Advice {
+  generatedAt: string;               // ISO
+  source: "ai" | "rules";            // "rules" must render as "Rule-based estimate", never as AI
+  model: string | null;              // e.g. "gpt-6-luna" when source === "ai"
+  refreshing: boolean;               // an AI run is in flight; data shown is the last good result
+  stale: boolean;                    // ledger changed after generatedAt
+  error: string | null;              // last AI failure (quiet note in UI)
+  headline: string;                  // one sentence, no dollar totals
+  baseline: { cash: number; burn: number; runwayMonths: number; zeroCashDate: string }; // identical to Summary
+  potential: RunwayWhatIf;           // every non-dismissed rec adopted
+  accepted: RunwayWhatIf;            // accepted recs only
+  recommendations: Recommendation[]; // sorted monthlySavings desc, then oneTimeCash desc; order never changes on decide
+}

@@ -83,6 +83,6 @@ export function filterTxns(q: { month?: string | null; category?: string | null;
     (!q.source || t.source === q.source) &&
     (!q.vendor || t.vendor.toLowerCase().includes(q.vendor.toLowerCase())) &&
     (!q.flag || t.flags.includes(q.flag as any)) &&
-    (!needle || `${t.description} ${t.vendor} ${t.category} ${t.note ?? ""}`.toLowerCase().includes(needle)));
+    (!needle || `${t.id} ${t.description} ${t.vendor} ${t.category} ${t.note ?? ""}`.toLowerCase().includes(needle)));
 }
 
