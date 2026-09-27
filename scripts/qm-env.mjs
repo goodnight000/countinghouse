@@ -1,5 +1,5 @@
 // Writes qm/.env with every secret the deployment needs plus a demo admin password.
-// usage: OPENROUTER_API_KEY=sk-or-... ADMIN_EMAIL=you@example.com node scripts/qm-env.mjs
+// usage: OPENAI_API_KEY=sk-... ADMIN_EMAIL=you@example.com node scripts/qm-env.mjs
 import { generateKeyPairSync, randomBytes, scryptSync } from "node:crypto";
 import { existsSync, writeFileSync } from "node:fs";
 
@@ -8,10 +8,10 @@ if (existsSync(path)) {
   console.log("qm/.env exists, keeping it");
   process.exit(0);
 }
-const key = process.env.OPENROUTER_API_KEY;
+const key = process.env.OPENAI_API_KEY;
 const email = (process.env.ADMIN_EMAIL ?? "").trim().toLowerCase();
 if (!key || !email) {
-  console.error("set OPENROUTER_API_KEY and ADMIN_EMAIL");
+  console.error("set OPENAI_API_KEY and ADMIN_EMAIL");
   process.exit(1);
 }
 const hex = () => randomBytes(32).toString("hex");
@@ -26,7 +26,7 @@ const env = {
   CAPABILITY_SECRET: hex(), CONNECTOR_SECRET_KEY: hex(), CORE_SIGNING_SECRET: hex(), SKILL_SIGNING_SECRET: hex(),
   PORTAL_IDENTITY_SECRET: hex(), PORTAL_SESSION_SECRET: hex(), AUTH_TOKEN_SECRET: hex(), AUTH_CLIENT_SECRET: hex(),
   AUTH_SIGNING_JWK: jwk, AUTH_ALLOWED_EMAILS: email, AUTH_PASSWORD_USERS: `${email}:${hash}`, SMTP_HOST: "localhost",
-  OPENROUTER_API_KEY: key, PUBLIC_API_URL: "http://host.docker.internal:8080",
+  OPENAI_API_KEY: key, PUBLIC_API_URL: "http://host.docker.internal:8080",
 };
 writeFileSync(path, Object.entries(env).map(([k, v]) => `${k}=${v}`).join("\n") + `\n# Demo sign-in: ${email} / ${password}\n`, { mode: 0o600 });
 console.log(`wrote qm/.env — sign in as ${email} / ${password}`);

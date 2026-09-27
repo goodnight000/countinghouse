@@ -10,7 +10,9 @@ export const usd = (n: number) => (n < 0 ? "-" : "") + "$" + Math.abs(Math.round
 export function monthStats(txns: Txn[]): MonthStat[] {
   return MONTHS.map((month) => {
     const ts = txns.filter((t) => t.date.startsWith(month));
-    const revenue = ts.filter((t) => t.amount > 0 && (t.category === "Revenue" || t.category === "Interest")).reduce((a, t) => a + t.amount, 0);
+    // revenue = Stripe/customer revenue only; treasury interest is shown as byCategory.Interest and counted in net
+    const revenue = ts.filter((t) => t.category === "Revenue").reduce((a, t) => a + t.amount, 0);
+    const interest = ts.filter((t) => t.category === "Interest").reduce((a, t) => a + t.amount, 0);
     const byCategory: Partial<Record<Category, number>> = {};
     let expenses = 0;
     for (const t of ts) {
@@ -18,7 +20,8 @@ export function monthStats(txns: Txn[]): MonthStat[] {
       byCategory[t.category] = r0((byCategory[t.category] ?? 0) - t.amount);
       expenses -= t.amount;
     }
-    return { month, revenue: r0(revenue), expenses: r0(expenses), net: r0(revenue - expenses), byCategory };
+    if (interest) byCategory.Interest = r0(interest);
+    return { month, revenue: r0(revenue), expenses: r0(expenses), net: r0(revenue + interest - expenses), byCategory };
   });
 }
 
@@ -69,8 +72,9 @@ export function core(txns: Txn[], bal: Balances) {
   const months = monthStats(txns);
   const cash = bal.mercuryChecking + bal.mercuryTreasury;
   const last3 = months.slice(-3);
-  const burnLast = months[11]!.expenses - months[11]!.revenue;
-  const avg3 = last3.reduce((a, m) => a + (m.expenses - m.revenue), 0) / 3;
+  // burn = expenses - revenue - interest = -net, everywhere
+  const burnLast = -months[11]!.net;
+  const avg3 = last3.reduce((a, m) => a - m.net, 0) / 3;
   const runway = cash / avg3;
   const mrrOf = (ym: string) => txns.filter((t) => t.category === "Revenue" && t.source === "stripe" && t.date.startsWith(ym)).reduce((a, t) => a + t.amount, 0)
     || txns.filter((t) => t.category === "Revenue" && t.date.startsWith(ym)).reduce((a, t) => a + t.amount, 0);
@@ -185,11 +189,12 @@ export function scenario(txns: Txn[], bal: Balances, o: { extra_monthly_spend?: 
   const last3 = c.months.slice(-3);
   const expenses = last3.reduce((a, m) => a + m.expenses, 0) / 3 + addSpend;
   let revenue = last3.reduce((a, m) => a + m.revenue, 0) / 3;
+  const interest = last3.reduce((a, m) => a + (m.net + m.expenses - m.revenue), 0) / 3;
   const g = (o.revenue_growth_pct ?? 0) / 100;
-  const newBurn = expenses - revenue;
+  const newBurn = expenses - revenue - interest;
   let cash = c.cash, months = 0;
   while (cash > 0 && months < 120) {
-    const net = expenses - revenue;
+    const net = expenses - revenue - interest;
     if (net <= 0) { months = Infinity; break; }
     if (cash < net) { months += cash / net; cash = 0; break; }
     cash -= net; months++; revenue *= 1 + g;

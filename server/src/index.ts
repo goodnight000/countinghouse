@@ -2,7 +2,7 @@ import type { Provider } from "../../shared/types";
 import { summary, taxes } from "./derive";
 import { PROVIDERS, balances, integrations, sync, syncAll, txns, filterTxns } from "./state";
 import * as state from "./state";
-import { brainPage, brainPages, initBrain } from "./brain";
+import { brainPage, brainPages, initBrain, review } from "./brain";
 import { handleMcp } from "./mcp";
 
 const CORS = {
@@ -28,6 +28,12 @@ const handler = {
       }
       if (p === "/api/integrations") return json([...integrations.values()]);
       if (p === "/api/sync" && req.method === "POST") return json(await syncAll());
+      const rv = p.match(/^\/api\/transactions\/([^/]+)\/review$/);
+      if (rv && req.method === "POST") {
+        const body: any = await req.json().catch(() => ({}));
+        const t = review(decodeURIComponent(rv[1]!), typeof body?.note === "string" ? body.note : "");
+        return t ? json(t) : json({ error: "unknown transaction" }, 404);
+      }
       const m = p.match(/^\/api\/integrations\/(\w+)\/sync$/);
       if (m && req.method === "POST") {
         if (!PROVIDERS.includes(m[1] as Provider)) return json({ error: "unknown provider" }, 404);
@@ -58,3 +64,4 @@ const t0 = Date.now();
 await syncAll();
 console.log(`initial sync: ${state.txns.length} txns in ${Date.now() - t0}ms`);
 initBrain();
+// GBrain CLI: GBRAIN_CLI, else <repo>/vendor/gbrain/src/cli.ts, else ~/Developer/gbrain-oss/src/cli.ts

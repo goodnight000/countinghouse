@@ -4,11 +4,14 @@
 import type { BrainPage, Category } from "../../shared/types";
 import { core, contractors, franchiseTax, summary, taxes, usd, vendorStats } from "./derive";
 import { ASOF, CAP_TABLE, MONTHS } from "./mock";
-import { RULES, learned, SAAS_LOGINS } from "./rules";
+import { RULES, learned, reviewed, SAAS_LOGINS } from "./rules";
 import * as state from "./state";
 import { homedir } from "os";
+import { existsSync } from "fs";
+import { join } from "path";
 
-const CLI = process.env.GBRAIN_CLI ?? `${homedir()}/Developer/gbrain-oss/src/cli.ts`;
+const VENDORED = join(import.meta.dir, "../../vendor/gbrain/src/cli.ts");
+const CLI = process.env.GBRAIN_CLI ?? (existsSync(VENDORED) ? VENDORED : `${homedir()}/Developer/gbrain-oss/src/cli.ts`);
 const mirror = new Map<string, { page: BrainPage; markdown: string }>();
 const written = new Map<string, string>(); // slug -> markdown last written
 const queue: string[] = [];
@@ -35,7 +38,9 @@ function setPage(slug: string, title: string, type: string, markdown: string) {
 }
 
 function enqueue(slug: string) {
-  if (!queue.includes(slug)) queue.push(slug);
+  if (queue.includes(slug)) return pump();
+  // durable state (learned rules, reviews, agent notes) jumps the queue so a restart can't lose it
+  if (/^(policies|notes)\//.test(slug)) queue.unshift(slug); else queue.push(slug);
   pump();
 }
 async function putWithRetry(slug: string, md: string) {
@@ -90,6 +95,7 @@ export function renderAll() {
     const notes: string[] = [];
     if (v.vendor in SAAS_LOGINS) notes.push(`${SAAS_LOGINS[v.vendor]} SSO logins in the last 90 days.`);
     if (v.vendor === "AWS") notes.push("GPU instances (p4d) started in July; spend up since then.");
+    for (const x of own.filter((x) => reviewed.has(x.id))) notes.push(`${x.date} ${usd(x.amount)} reviewed ${reviewed.get(x.id)!.at}${reviewed.get(x.id)!.note ? `: ${reviewed.get(x.id)!.note}` : ""}`);
     for (const x of own.filter((x) => x.flags.includes("duplicate") || x.flags.includes("unusual") || x.flags.includes("missing_receipt"))) notes.push(`${x.date} ${usd(x.amount)}: ${x.flags.join(", ")}`);
     const slug = `vendors/${slugify(v.vendor)}`;
     setPage(slug, v.vendor, "vendor",
@@ -102,13 +108,13 @@ export function renderAll() {
   }
 
   s.months.forEach((m, i) => {
-    const cats = Object.entries(m.byCategory).sort((a, b) => b[1]! - a[1]!);
+    const cats = Object.entries(m.byCategory).filter(([k]) => k !== "Interest").sort((a, b) => b[1]! - a[1]!);
     const mt = t.filter((x) => x.date.startsWith(m.month));
     const top = vendorStats(mt).slice(0, 6);
     const flagged = mt.filter((x) => x.flags.some((f) => f !== "1099"));
     setPage(`months/${m.month}`, `${m.month} monthly close`, "month",
       front(`${m.month} monthly close`, "month", { month: m.month }) +
-      `# ${m.month} close\n\nRevenue ${usd(m.revenue)} · Expenses ${usd(m.expenses)} · Net ${usd(m.net)}${i > 0 ? ` · Expenses ${m.expenses >= s.months[i - 1]!.expenses ? "up" : "down"} ${usd(Math.abs(m.expenses - s.months[i - 1]!.expenses))} vs [[months/${s.months[i - 1]!.month}]]` : ""}\n\n` +
+      `# ${m.month} close\n\nRevenue ${usd(m.revenue)} · Interest ${usd(m.byCategory.Interest ?? 0)} · Expenses ${usd(m.expenses)} · Net ${usd(m.net)} (burn = expenses - revenue - interest)${i > 0 ? ` · Expenses ${m.expenses >= s.months[i - 1]!.expenses ? "up" : "down"} ${usd(Math.abs(m.expenses - s.months[i - 1]!.expenses))} vs [[months/${s.months[i - 1]!.month}]]` : ""}\n\n` +
       `## By category\n\n${table(cats.map(([k, val]) => [k, usd(val!)]), ["Category", "Spend"])}\n## Top vendors\n\n${top.map((x) => `- [[vendors/${slugify(x.vendor)}]] ${usd(x.lastMonth)}`).join("\n")}\n` +
       (flagged.length ? `\n## Open items\n\n${flagged.map((x) => `- ${x.date} ${x.vendor} ${usd(x.amount)}: ${x.flags.join(", ")}`).join("\n")}\n` : "\nNo open items. Month is clean.\n") +
       `\nPart of [[company/lumen-labs]].\n`);
@@ -132,6 +138,8 @@ export function renderAll() {
     `# Categorization rules\n\nBuilt-in descriptor rules categorize every transaction on day one. Learned rules override them and are saved here and on the vendor page.\n\n` +
     `## Learned rules\n\n${learned.size ? table([...learned].map(([k, l]) => [k, l.category, l.reason, l.at]), ["Vendor", "Category", "Reason", "Learned"]) : "None yet.\n"}\n` +
     "```json learned-rules\n" + JSON.stringify(Object.fromEntries(learned), null, 1) + "\n```\n\n" +
+    `## Reviewed transactions\n\n${reviewed.size ? [...reviewed].map(([id, r]) => `- ${id} (${r.at})${r.note ? `: ${r.note}` : ""}`).join("\n") : "None yet."}\n\n` +
+    "```json reviewed-txns\n" + JSON.stringify(Object.fromEntries(reviewed), null, 1) + "\n```\n\n" +
     `## Policies\n\n- Stripe revenue is counted once, from Stripe. The Mercury payout line is a Transfer.\n- Equity financing (seed wires) is a Transfer, never revenue.\n- Card payments (Brex, Ramp) are Transfers; the card lines carry the expense.\n- Contractors and law firms paid over $600 get a 1099-NEC.\n\n` +
     `## Built-in rules\n\n${table(RULES.map(([re, v, c]) => ["`/" + re.source.replace(/\|/g, "\\|") + "/`", `[[vendors/${slugify(v)}]]`, c]), ["Pattern", "Vendor", "Category"])}`);
 }
@@ -169,6 +177,13 @@ export function learn(vendor: string, category: Category, reason: string) {
   state.rederive(); // triggers renderAll -> vendor page + policies page rewritten in GBrain
 }
 
+export function review(id: string, note = "") {
+  if (!state.txns.some((t) => t.id === id)) return null;
+  reviewed.set(id, { note, at: new Date().toISOString().slice(0, 10) });
+  state.rederive(); // re-derives flags + insights, rewrites the vendor page and policies page in GBrain
+  return state.txns.find((t) => t.id === id)!;
+}
+
 let timer: Timer | undefined;
 export function initBrain() {
   state.onChange(() => { clearTimeout(timer); timer = setTimeout(renderAll, 300); });
@@ -176,7 +191,9 @@ export function initBrain() {
   gbrain(["get", "policies/categorization-rules"]).then((md) => {
     const m = md.match(/```json learned-rules\n([\s\S]*?)\n```/);
     if (m) for (const [k, v] of Object.entries(JSON.parse(m[1]!))) learned.set(k, v as any);
-    if (learned.size) { console.log(`[brain] loaded ${learned.size} learned rules`); state.rederive(); }
+    const r = md.match(/```json reviewed-txns\n([\s\S]*?)\n```/);
+    if (r) for (const [k, v] of Object.entries(JSON.parse(r[1]!))) reviewed.set(k, v as any);
+    if (learned.size || reviewed.size) { console.log(`[brain] loaded ${learned.size} learned rules, ${reviewed.size} reviews`); state.rederive(); }
   }).catch(() => {}).finally(renderAll);
   // Include pre-existing notes (from the agent) in the mirror listing.
   loadNotes();

@@ -25,16 +25,17 @@ anything about your money in chat.
 
 ## Run it
 
-Needs Bun, Node 24+, Docker (Docker Desktop or Colima) and an OpenRouter key.
+Needs Bun, Node 24+, Docker (Docker Desktop or Colima) and an OpenAI API key.
 
 ```sh
 git clone https://github.com/goodnight000/countinghouse && cd countinghouse
-OPENROUTER_API_KEY=sk-or-... ADMIN_EMAIL=you@example.com ./start.sh
+OPENAI_API_KEY=sk-... ADMIN_EMAIL=you@example.com ./start.sh
 ```
 
 `start.sh` vendors and initializes GBrain, starts the finance server (:4001) and dashboard (:5190),
-brings up QM in Docker, and registers the finance tools with the agent. It prints the dashboard URL
-and your agent sign-in (http://localhost:8081).
+brings up QM in Docker, registers the finance tools with the agent, and sets its default model to
+GPT-6 Luna at high reasoning effort (`QM_MODEL` / `QM_EFFORT` override). It prints the dashboard URL
+and your agent sign-in (http://localhost:8081). Safe to re-run.
 
 To use real data, set any of `MERCURY_API_KEY`, `STRIPE_API_KEY`, `BREX_API_KEY`, `RAMP_API_KEY`,
 `GUSTO_API_KEY`, `AWS_ACCESS_KEY_ID`, `CARTA_API_KEY` before starting the server.
@@ -57,7 +58,10 @@ Mercury · Brex · Ramp · Stripe · Gusto · AWS · Carta
 - `qm/`: the QM deployment. `sandbox/skills/countinghouse/SKILL.md` makes the agent act as your finance team.
 - `shared/types.ts`: the API contract between server and dashboard.
 
-The local QM setup signs in with a generated password and is for local use only.
+QM runs from its published images with two small local fixes: `qm/images/core` patches one upstream bug so
+the agent's sandbox works when core runs in Docker, and `scripts/patch-qm-cli.mjs` teaches the pinned CLI
+about Colima's socket and local override images. The local setup signs in with a generated password and
+is meant for running on your own machine.
 
 ## License
 

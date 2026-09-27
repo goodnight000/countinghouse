@@ -51,10 +51,18 @@ export async function sync(id: Provider, quiet = false): Promise<Integration> {
     }
     errors.delete(id);
   } catch (e) {
+    // Live pull failed: degrade to mock data so the demo stays whole; status "error" + reason in logs / MCP.
+    const msg = e instanceof Error ? e.message : String(e);
     i.status = "error";
-    errors.set(id, String(e));
-    console.error(`[sync ${id}]`, e);
-    if (!raw.has(id)) raw.set(id, mockData.txns.filter((t) => t.source === id)); // keep the demo whole
+    errors.set(id, msg);
+    console.error(`[sync ${id}] live pull failed, serving mock data: ${msg}`);
+    const mock = mockData.txns.filter((t) => t.source === id);
+    raw.set(id, mock);
+    i.records = id === "carta" ? 5 : mock.length;
+    const mb = mockData.balances;
+    if (id === "mercury") { balances = { ...balances, mercuryChecking: mb.mercuryChecking, mercuryTreasury: mb.mercuryTreasury }; i.balance = mb.mercuryChecking + mb.mercuryTreasury; }
+    if (id === "brex") i.balance = mb.brex;
+    if (id === "ramp") i.balance = mb.ramp;
   }
   i.lastSync = new Date().toISOString();
   if (!quiet) rederive();

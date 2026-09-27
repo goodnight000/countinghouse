@@ -26,12 +26,12 @@
   // refuses a stack that cannot serve an agent turn. Delete this line to leave
   // the base model unset and have an administrator add the key from the Admin
   // page after deploy instead.
-  "modelProvider": "openrouter",
+  "modelProvider": "openai",
 
   // Optional base model id, passed to the harness (e.g. "claude-opus-4-6").
   // Omit it and the deployment uses the default model for the provider above.
   // It must be a model that provider can bill.
-  "model": "anthropic/claude-opus-5.5",
+  "model": "gpt-6-luna",
 
   // First-party services to run. The full set: "core" (the agent runtime and API,
   // always required), "slack" (the Slack surface, runs inside the core process),
@@ -54,6 +54,9 @@
   "env": { "core": { "HARNESS": "pi", "ADMIN_GRANTS": "gdragonjcm@gmail.com:org_admin" }, "auth": { "AUTH_EMAIL_TRANSPORT": "smtp" },
     // Local demo only: sign in automatically as the admin on localhost.
     "portal": { "NODE_ENV": "development", "PORTAL_LOCAL_AUTH_BYPASS": "1", "PORTAL_DEV_PRINCIPAL": "gdragonjcm@gmail.com" } },
+
+  // Core with a one-line upstream fix so local sandboxes work when core runs in Docker (images/core).
+  "imageOverrides": { "core": "countinghouse/qm-core:local" },
 
   // One Docker container per scope as the agent computer.
   "sandbox": { "backend": "local" }

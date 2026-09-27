@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One command: GBrain + finance server + dashboard + QM agent, all local.
-#   OPENROUTER_API_KEY=sk-or-... ADMIN_EMAIL=you@example.com ./start.sh
+#   OPENAI_API_KEY=sk-... ADMIN_EMAIL=you@example.com ./start.sh
 set -euo pipefail
 cd "$(dirname "$0")"
 ROOT=$PWD
@@ -28,16 +28,18 @@ if [ -n "${ADMIN_EMAIL:-}" ]; then
   sed -i.bak -E "s/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+(:org_admin)/${ADMIN_EMAIL}\1/; s/(\"PORTAL_DEV_PRINCIPAL\": \")[^\"]+/\1${ADMIN_EMAIL}/" qm.config.jsonc && rm -f qm.config.jsonc.bak
 fi
 node ../scripts/qm-env.mjs
+node ../scripts/patch-qm-cli.mjs
 if docker context show 2>/dev/null | grep -q colima; then
-  node ../scripts/patch-qm-colima.mjs
   export DOCKER_HOST="unix://$HOME/.colima/default/docker.sock" QM_DOCKER_SOCKET_MOUNT=/var/run/docker.sock
   QM_DOCKER_SOCKET_GID=$(colima ssh -- stat -c %g /var/run/docker.sock); export QM_DOCKER_SOCKET_GID
 fi
+docker build -q --platform linux/amd64 -t countinghouse/qm-core:local images/core >/dev/null
 npm exec qm -- up || npm exec qm -- up   # core can time out on first boot under emulation
 cd "$ROOT"
 
-# 4. Give the QM agent the finance tools (MCP over HTTP, reached from inside Docker).
-scripts/qm-register-books.sh
+# 4. Give the QM agent the finance tools and its default model (gpt-6-luna, high effort).
+scripts/qm-configure.sh
+docker restart "qm-$(grep -oE '"orgId": "[^"]+"' qm/qm.config.jsonc | cut -d'"' -f4)-core" >/dev/null
 
 echo
 echo "Dashboard  http://localhost:5190"

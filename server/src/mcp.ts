@@ -3,7 +3,7 @@ import type { Category, Provider } from "../../shared/types";
 import { core, franchiseTax, scenario, summary, taxes, usd, vendorStats } from "./derive";
 import { MONTHS } from "./mock";
 import * as state from "./state";
-import { brainPage, brainSearch, learn, remember } from "./brain";
+import { brainPage, brainSearch, learn, remember, review } from "./brain";
 
 const CATEGORIES: Category[] = ["Revenue", "Interest", "Payroll", "Payroll Taxes", "Contractors", "Cloud & Infra", "AI & APIs", "Software", "Rent & Office", "Legal & Accounting", "Marketing", "Travel & Meals", "Hardware", "Insurance", "Taxes & Fees", "Bank Fees", "Transfers", "Other"];
 const obj = (properties: Record<string, unknown> = {}, required: string[] = []) => ({ type: "object", properties, required });
@@ -22,6 +22,7 @@ const TOOLS = [
   { name: "brain_read", description: "Read one GBrain memory page as markdown, e.g. 'company/lumen-labs', 'vendors/aws', 'months/2026-09', 'taxes/calendar', 'taxes/delaware-franchise-tax', 'policies/categorization-rules', 'notes/<slug>'.", inputSchema: obj({ slug: str("Page slug") }, ["slug"]) },
   { name: "remember", description: "Save a durable note to the company's GBrain memory (as notes/<slug>) so it is available in future sessions: decisions, context from the founder, vendor quirks, follow-ups.", inputSchema: obj({ title: str("Short title"), content: str("Markdown content") }, ["title", "content"]) },
   { name: "recategorize", description: "Teach a categorization rule: every transaction from this vendor gets the new category, now and on future syncs. The rule is saved in GBrain (vendor page + policies/categorization-rules) and overrides the built-in rules. Returns what changed.", inputSchema: obj({ vendor: str("Vendor name exactly as shown in transactions, e.g. 'Brightline Events'"), category: str("New category", { enum: CATEGORIES }), reason: str("Why, in a few words") }, ["vendor", "category", "reason"]) },
+  { name: "mark_reviewed", description: "Mark one transaction as reviewed (e.g. the founder confirmed an unusual charge). Clears its 'unusual' and 'needs_review' flags, removes the matching insight, and records the review with the note on the vendor's GBrain page. Survives restarts.", inputSchema: obj({ transaction_id: str("Transaction id from search_transactions, e.g. 'mercury_0650'"), note: str("Why it is fine, in a few words") }, ["transaction_id"]) },
 ];
 
 const table = (head: string[], rows: (string | number)[][]) => `| ${head.join(" | ")} |\n|${head.map(() => "---").join("|")}|\n${rows.map((r) => `| ${r.join(" | ")} |`).join("\n")}`;
@@ -32,13 +33,13 @@ async function call(name: string, a: any): Promise<string> {
   switch (name) {
     case "get_financial_summary": {
       const s = summary(t, b);
-      return `# ${s.company.legalName} as of ${s.asOf}\n\n- Cash: **${usd(s.cash.total)}** (${s.cash.byAccount.map((x) => `${x.name}: ${usd(x.balance)}`).join("; ")})\n- Net burn: ${usd(s.burn.lastMonth)} last month, ${usd(s.burn.avg3mo)}/mo 3-month avg\n- Runway: **${s.runwayMonths} months** (zero cash ~${s.zeroCashDate})\n- MRR: ${usd(s.mrr)} (${s.mrrGrowthPct >= 0 ? "+" : ""}${s.mrrGrowthPct}% MoM)\n\n## Monthly\n${table(["Month", "Revenue", "Expenses", "Net"], s.months.map((m) => [m.month, usd(m.revenue), usd(m.expenses), usd(m.net)]))}\n\n## Insights\n${s.insights.map((i) => `- [${i.severity}] **${i.title}**: ${i.body}`).join("\n")}`;
+      return `# ${s.company.legalName} as of ${s.asOf}\n\n- Cash: **${usd(s.cash.total)}** (${s.cash.byAccount.map((x) => `${x.name}: ${usd(x.balance)}`).join("; ")})\n- Net burn: ${usd(s.burn.lastMonth)} last month, ${usd(s.burn.avg3mo)}/mo 3-month avg\n- Runway: **${s.runwayMonths} months** (zero cash ~${s.zeroCashDate})\n- MRR: ${usd(s.mrr)} (${s.mrrGrowthPct >= 0 ? "+" : ""}${s.mrrGrowthPct}% MoM)\n\n## Monthly\n${table(["Month", "Revenue", "Interest", "Expenses", "Net"], s.months.map((m) => [m.month, usd(m.revenue), usd(m.byCategory.Interest ?? 0), usd(m.expenses), usd(m.net)]))}\n\nBurn = expenses - Stripe revenue - treasury interest. MRR/revenue exclude interest.\n\n## Insights\n${s.insights.map((i) => `- [${i.severity}] **${i.title}**: ${i.body}`).join("\n")}`;
     }
     case "search_transactions": {
       const rows = state.filterTxns({ q: a.q, month: a.month, category: a.category, vendor: a.vendor, source: a.source, flag: a.flag });
       const lim = Math.min(Number(a.limit) || 25, 100);
       const total = rows.reduce((s, x) => s + x.amount, 0);
-      return `${rows.length} transactions, net ${usd(total)}${rows.length > lim ? ` (showing ${lim})` : ""}\n\n${table(["Date", "Amount", "Vendor", "Category", "Source", "Descriptor", "Flags"], rows.slice(0, lim).map((x) => [x.date, usd(x.amount), x.vendor, x.category, x.source, x.description, x.flags.join(",")]))}`;
+      return `${rows.length} transactions, net ${usd(total)}${rows.length > lim ? ` (showing ${lim})` : ""}\n\n${table(["Id", "Date", "Amount", "Vendor", "Category", "Source", "Descriptor", "Flags"], rows.slice(0, lim).map((x) => [x.id, x.date, usd(x.amount), x.vendor, x.category, x.source, x.description, x.flags.join(",")]))}`;
     }
     case "vendor_spend": {
       const vs = vendorStats(t);
@@ -74,6 +75,11 @@ async function call(name: string, a: any): Promise<string> {
       return hits.length ? hits.map((h: any) => `- **${h.slug}** (${h.title}): ${h.excerpt}`).join("\n") : "No pages matched.";
     }
     case "brain_read": return (await brainPage(String(a.slug ?? ""))) ?? `Page not found: ${a.slug}`;
+    case "mark_reviewed": {
+      const t = review(String(a.transaction_id), a.note ? String(a.note) : "");
+      if (!t) return `No transaction with id ${a.transaction_id}. Use search_transactions to find ids.`;
+      return `Reviewed ${t.id}: ${t.date} ${t.vendor} ${usd(t.amount)}. Flags now: ${t.flags.join(", ") || "none"}. Saved to GBrain (vendor page + policies/categorization-rules).`;
+    }
     case "remember": {
       const slug = remember(String(a.title), String(a.content));
       return `Saved to GBrain as ${slug}.`;

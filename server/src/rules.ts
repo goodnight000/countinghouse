@@ -59,6 +59,7 @@ export const SAAS_LOGINS: Record<string, number> = { Salesforce: 0, Figma: 41, L
 
 export interface Learned { category: Category; reason: string; at: string }
 export const learned = new Map<string, Learned>(); // key: lowercased vendor
+export const reviewed = new Map<string, { note: string; at: string }>(); // key: txn id
 
 function fallbackVendor(desc: string) {
   const s = desc
@@ -104,6 +105,12 @@ export function categorize(raw: RawTxn[]): Txn[] {
       t.flags.push("unusual");
       t.note = `Unusual: ${hist.length === 1 ? "first payment ever to this vendor" : `${Math.round(-t.amount / med)}x typical`}. ${t.note ?? ""}`;
     }
+  }
+  for (const t of txns) {
+    const r = reviewed.get(t.id);
+    if (!r) continue;
+    t.flags = t.flags.filter((f) => f !== "unusual" && f !== "needs_review");
+    t.note = `Reviewed ${r.at}${r.note ? `: ${r.note}` : ""}. ${t.note ?? ""}`;
   }
   return txns;
 }
