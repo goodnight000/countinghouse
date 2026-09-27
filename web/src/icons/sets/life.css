@@ -1,0 +1,767 @@
+/* Motion for Food, health and travel (sets/life.js). The trigger wrapper is the same in every set. */
+
+:where(a, button, label, summary, [role="button"], .ic-play, .ic-host):is(
+    :hover,
+    :focus-visible
+  )
+  .ic,
+.ic-play .ic {
+  /* The steam curls up and drifts off, and fresh wisps rise out of the cup. */
+  &.ic-coffee .i-steam {
+    animation: ic-coffee-steam 820ms linear;
+  }
+  &.ic-coffee .i-steam-2 {
+    animation-name: ic-coffee-steam-2;
+    animation-delay: 130ms;
+  }
+
+  /* Fork and knife lean in, clink at the tips and spring apart. */
+  &.ic-utensils .i-fork {
+    transform-origin: 8px 21px;
+    animation: ic-utensils-fork 800ms linear;
+  }
+  &.ic-utensils .i-knife {
+    transform-origin: 17.5px 21px;
+    animation: ic-utensils-knife 800ms linear;
+  }
+  &.ic-utensils .i-clink {
+    transform-origin: 12.5px 2px;
+    animation: ic-utensils-clink 800ms ease-out;
+  }
+
+  /* The pedals turn, the bike pops a wheelie and lands back on both wheels. */
+  &.ic-bike .i-ride {
+    transform-origin: 5.5px 20.1px;
+    animation: ic-bike-wheelie 1000ms linear;
+  }
+  &.ic-bike .i-crank {
+    transform-origin: 11px 16.5px;
+    animation: ic-bike-crank 1000ms ease-in-out;
+  }
+  &.ic-bike .i-speed {
+    animation: ic-bike-speed 1000ms ease-out;
+  }
+
+  /* The train rocks on its bogies as sleepers rush under it, and its lamp flashes. */
+  &.ic-train .i-car {
+    transform-origin: 12px 17px;
+    animation: ic-train-rock 900ms ease-in-out;
+  }
+  &.ic-train .i-tie {
+    animation: ic-train-tie 900ms linear;
+  }
+  &.ic-train .i-glow {
+    transform-origin: 12px 13.8px;
+    animation: ic-train-glow 900ms ease-out;
+  }
+
+  /* The rocket rumbles, fires, lifts off in a puff of smoke and eases back onto the pad. */
+  &.ic-rocket .i-ship {
+    animation: ic-rocket-launch 1000ms linear;
+  }
+  &.ic-rocket .i-thrust {
+    transform-origin: 12px 18.4px;
+    animation: ic-rocket-thrust 1000ms linear;
+  }
+  &.ic-rocket .i-puff {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: ic-rocket-puff-l 700ms ease-out 200ms;
+  }
+  &.ic-rocket .i-puff-2 {
+    animation-name: ic-rocket-puff-r;
+    animation-delay: 250ms;
+  }
+
+  /* The cap is tossed, turns in the air and lands; the tassel swings behind it. */
+  &.ic-graduation .i-cap {
+    transform-origin: 12px 11px;
+    animation: ic-graduation-toss 1000ms linear;
+  }
+  &.ic-graduation .i-tassel {
+    transform-origin: 21.5px 8.5px;
+    animation: ic-graduation-tassel 1000ms ease-in-out;
+  }
+
+  /* The capsule twists open, a few grains spill out, and it clicks shut. */
+  &.ic-pill .i-half-l {
+    transform-origin: 12px 12px;
+    animation: ic-pill-half-l 900ms ease-in-out;
+  }
+  &.ic-pill .i-half-r {
+    transform-origin: 12px 12px;
+    animation: ic-pill-half-r 900ms ease-in-out;
+  }
+  &.ic-pill .i-grain {
+    animation: ic-pill-grain-1 900ms linear;
+  }
+  &.ic-pill .i-grain-2 {
+    animation-name: ic-pill-grain-2;
+  }
+  &.ic-pill .i-grain-3 {
+    animation-name: ic-pill-grain-3;
+  }
+
+  /* The cross beats twice like a pulse and the case thumps along with it. */
+  &.ic-first-aid .i-cross {
+    transform-origin: 12px 13.25px;
+    animation: ic-first-aid-beat 900ms ease-in-out;
+  }
+  &.ic-first-aid .i-kit {
+    transform-origin: 12px 20px;
+    animation: ic-first-aid-thump 900ms ease-in-out;
+  }
+
+  /* It presses down with toes splayed, lifts away leaving a print, and steps back in. */
+  &.ic-paw .i-foot {
+    transform-origin: 12px 21px;
+    animation: ic-paw-step 1000ms linear;
+  }
+  &.ic-paw .i-toe {
+    animation: ic-paw-toe-1 1000ms ease-in-out;
+  }
+  &.ic-paw .i-toe-2 {
+    animation-name: ic-paw-toe-2;
+  }
+  &.ic-paw .i-toe-3 {
+    animation-name: ic-paw-toe-3;
+  }
+  &.ic-paw .i-toe-4 {
+    animation-name: ic-paw-toe-4;
+  }
+  &.ic-paw .i-print {
+    animation: ic-paw-print 1000ms linear;
+  }
+
+  /* The pillow is plumped, and a couple of z's drift up off it. */
+  &.ic-bed .i-pillow {
+    transform-origin: 8px 12.5px;
+    animation: ic-bed-plump 700ms linear;
+  }
+  &.ic-bed .i-zz {
+    animation: ic-bed-zz 680ms ease-out 140ms;
+  }
+  &.ic-bed .i-zz-2 {
+    animation-delay: 300ms;
+  }
+}
+
+@keyframes ic-coffee-steam {
+  0% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: ease-in;
+  }
+  42% {
+    opacity: 0;
+    transform: translate(0.6px, -3px);
+  }
+  43% {
+    opacity: 0;
+    transform: translate(0, 2px);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ic-coffee-steam-2 {
+  0% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: ease-in;
+  }
+  42% {
+    opacity: 0;
+    transform: translate(-0.6px, -3px);
+  }
+  43% {
+    opacity: 0;
+    transform: translate(0, 2px);
+    animation-timing-function: ease-out;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ic-utensils-fork {
+  0% {
+    transform: none;
+    animation-timing-function: ease-out;
+  }
+  14% {
+    transform: rotate(-3deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  34% {
+    transform: rotate(4.5deg);
+    animation-timing-function: ease-out;
+  }
+  48% {
+    transform: rotate(2deg);
+    animation-timing-function: ease-in-out;
+  }
+  62% {
+    transform: rotate(-1.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  78% {
+    transform: rotate(0.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes ic-utensils-knife {
+  0% {
+    transform: none;
+    animation-timing-function: ease-out;
+  }
+  14% {
+    transform: rotate(3deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  34% {
+    transform: rotate(-4.5deg);
+    animation-timing-function: ease-out;
+  }
+  48% {
+    transform: rotate(-2deg);
+    animation-timing-function: ease-in-out;
+  }
+  62% {
+    transform: rotate(1.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  78% {
+    transform: rotate(-0.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes ic-utensils-clink {
+  0%,
+  32% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  36% {
+    opacity: 1;
+  }
+  58%,
+  100% {
+    opacity: 0;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes ic-bike-wheelie {
+  0% {
+    transform: none;
+    animation-timing-function: ease-in-out;
+  }
+  12% {
+    transform: rotate(2deg);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
+  }
+  40% {
+    transform: rotate(-14deg);
+    animation-timing-function: ease-in-out;
+  }
+  56% {
+    transform: rotate(-11deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  72% {
+    transform: rotate(1.5deg);
+    animation-timing-function: ease-out;
+  }
+  84% {
+    transform: rotate(-0.8deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes ic-bike-crank {
+  0% {
+    transform: rotate(0);
+  }
+  80%,
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes ic-bike-speed {
+  0%,
+  12% {
+    opacity: 0;
+    transform: translateX(1.5px);
+  }
+  30% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: translateX(-1.5px);
+  }
+}
+
+@keyframes ic-train-rock {
+  10% {
+    transform: rotate(-3deg);
+  }
+  24% {
+    transform: rotate(3deg) translateY(-0.4px);
+  }
+  38% {
+    transform: rotate(-2.2deg);
+  }
+  52% {
+    transform: rotate(1.8deg) translateY(-0.3px);
+  }
+  66% {
+    transform: rotate(-1deg);
+  }
+  80% {
+    transform: rotate(0.4deg);
+  }
+}
+@keyframes ic-train-tie {
+  0% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: ease-in;
+  }
+  24% {
+    opacity: 0;
+    transform: translateY(1.8px) scaleX(1.1);
+  }
+  25% {
+    opacity: 0;
+    transform: translateY(-1.6px) scaleX(0.8);
+    animation-timing-function: ease-out;
+  }
+  48% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: ease-in;
+  }
+  72% {
+    opacity: 0;
+    transform: translateY(1.8px) scaleX(1.1);
+  }
+  73% {
+    opacity: 0;
+    transform: translateY(-1.6px) scaleX(0.8);
+    animation-timing-function: ease-out;
+  }
+  96%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ic-train-glow {
+  0%,
+  6% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  10% {
+    opacity: 1;
+  }
+  34% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  46% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  50% {
+    opacity: 1;
+  }
+  76%,
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+@keyframes ic-rocket-launch {
+  0% {
+    transform: none;
+  }
+  4% {
+    transform: translate(0.35px, 0.1px);
+  }
+  8% {
+    transform: translate(-0.35px, 0);
+  }
+  12% {
+    transform: translate(0.35px, 0.2px);
+  }
+  16% {
+    transform: translate(-0.35px, 0.2px);
+  }
+  20% {
+    transform: translate(0, 0.5px);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.4);
+  }
+  34% {
+    transform: translate(0, -1.6px);
+    animation-timing-function: cubic-bezier(0.2, 0.6, 0.3, 1);
+  }
+  52% {
+    transform: translate(0, -3.2px);
+    animation-timing-function: ease-in-out;
+  }
+  90% {
+    transform: translate(0, 0.25px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes ic-rocket-thrust {
+  0%,
+  4% {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
+  8% {
+    opacity: 1;
+    transform: scaleY(0.8);
+  }
+  14% {
+    transform: scaleY(0.6);
+  }
+  24% {
+    transform: scaleY(1.5);
+  }
+  32% {
+    transform: scaleY(1.1);
+  }
+  42% {
+    transform: scaleY(1.4);
+  }
+  58% {
+    transform: scaleY(0.9);
+  }
+  74% {
+    opacity: 1;
+    transform: scaleY(0.7);
+  }
+  88%,
+  100% {
+    opacity: 0;
+    transform: scaleY(0.3);
+  }
+}
+@keyframes ic-rocket-puff-l {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-2px, 0.4px) scale(1.5);
+  }
+}
+@keyframes ic-rocket-puff-r {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(2px, 0.4px) scale(1.5);
+  }
+}
+
+@keyframes ic-graduation-toss {
+  0% {
+    transform: none;
+    animation-timing-function: ease-in-out;
+  }
+  12% {
+    transform: translateY(1px) scale(1.03, 0.95);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.4, 1);
+  }
+  42% {
+    transform: translateY(-3.6px) rotate(-10deg);
+    animation-timing-function: ease-in-out;
+  }
+  54% {
+    transform: translateY(-3.4px) rotate(4deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  72% {
+    transform: translateY(0.6px) scale(1.03, 0.96);
+    animation-timing-function: ease-out;
+  }
+  84% {
+    transform: translateY(-0.4px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes ic-graduation-tassel {
+  12% {
+    transform: rotate(-6deg);
+  }
+  36% {
+    transform: rotate(28deg);
+  }
+  56% {
+    transform: rotate(-22deg);
+  }
+  72% {
+    transform: rotate(16deg);
+  }
+  86% {
+    transform: rotate(-6deg);
+  }
+}
+
+@keyframes ic-pill-half-l {
+  12% {
+    transform: rotate(4deg);
+  }
+  34%,
+  54% {
+    transform: translateX(-2.2px) rotate(-10deg);
+  }
+  70% {
+    transform: translateX(0.3px);
+  }
+  80% {
+    transform: none;
+  }
+}
+@keyframes ic-pill-half-r {
+  12% {
+    transform: rotate(-4deg);
+  }
+  34%,
+  54% {
+    transform: translateX(2.2px) rotate(10deg);
+  }
+  70% {
+    transform: translateX(-0.3px);
+  }
+  80% {
+    transform: none;
+  }
+}
+@keyframes ic-pill-grain-1 {
+  0%,
+  30% {
+    opacity: 0;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  34% {
+    opacity: 1;
+  }
+  72%,
+  100% {
+    opacity: 0;
+    transform: translate(-1.6px, 7px);
+  }
+}
+@keyframes ic-pill-grain-2 {
+  0%,
+  36% {
+    opacity: 0;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  40% {
+    opacity: 1;
+  }
+  78%,
+  100% {
+    opacity: 0;
+    transform: translate(0.4px, 8px);
+  }
+}
+@keyframes ic-pill-grain-3 {
+  0%,
+  42% {
+    opacity: 0;
+    transform: none;
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  46% {
+    opacity: 1;
+  }
+  82%,
+  100% {
+    opacity: 0;
+    transform: translate(2px, 6.5px);
+  }
+}
+
+@keyframes ic-first-aid-beat {
+  12% {
+    transform: scale(1.35);
+  }
+  24% {
+    transform: scale(0.94);
+  }
+  36% {
+    transform: scale(1.22);
+  }
+  52% {
+    transform: scale(1);
+  }
+}
+@keyframes ic-first-aid-thump {
+  14% {
+    transform: scale(1.04, 0.97);
+  }
+  26% {
+    transform: scale(1);
+  }
+  38% {
+    transform: scale(1.03, 0.98);
+  }
+  52% {
+    transform: scale(1);
+  }
+}
+
+@keyframes ic-paw-step {
+  0% {
+    opacity: 1;
+    transform: none;
+    animation-timing-function: ease-out;
+  }
+  14%,
+  28% {
+    opacity: 1;
+    transform: translateY(0.6px) scale(1.04, 0.95);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.4);
+  }
+  46% {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+  58% {
+    opacity: 0;
+    transform: translateY(-3px);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.3, 1);
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(0.3px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ic-paw-toe-1 {
+  14%,
+  28% {
+    transform: translate(-0.8px, 0.3px);
+  }
+  44% {
+    transform: none;
+  }
+}
+@keyframes ic-paw-toe-2 {
+  14%,
+  28% {
+    transform: translate(-0.4px, -0.7px);
+  }
+  44% {
+    transform: none;
+  }
+}
+@keyframes ic-paw-toe-3 {
+  14%,
+  28% {
+    transform: translate(0.4px, -0.7px);
+  }
+  44% {
+    transform: none;
+  }
+}
+@keyframes ic-paw-toe-4 {
+  14%,
+  28% {
+    transform: translate(0.8px, 0.3px);
+  }
+  44% {
+    transform: none;
+  }
+}
+@keyframes ic-paw-print {
+  0%,
+  14% {
+    opacity: 0;
+  }
+  22%,
+  64% {
+    opacity: 1;
+  }
+  88%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ic-bed-plump {
+  0% {
+    transform: none;
+  }
+  14% {
+    transform: scale(1.12, 0.7);
+  }
+  34% {
+    transform: scale(0.94, 1.18);
+  }
+  54% {
+    transform: scale(1.03, 0.95);
+  }
+  72% {
+    transform: scale(0.99, 1.02);
+  }
+  100% {
+    transform: none;
+  }
+}
+@keyframes ic-bed-zz {
+  0% {
+    opacity: 0;
+    transform: translate(-1px, 1.2px) scale(0.6);
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(1.2px, -1.6px);
+  }
+}

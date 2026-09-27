@@ -1,0 +1,57 @@
+@import "./sets/core.css";
+@import "./sets/nav.css";
+@import "./sets/arrows.css";
+@import "./sets/states.css";
+@import "./sets/talk.css";
+@import "./sets/people.css";
+@import "./sets/media.css";
+@import "./sets/files.css";
+@import "./sets/editing.css";
+@import "./sets/build.css";
+@import "./sets/things.css";
+@import "./sets/world.css";
+@import "./sets/work.css";
+@import "./sets/life.css";
+@import "./sets/nature.css";
+
+/* Charade. At rest every icon is still and ordinary; when the control holding it is hovered
+   or focused, the icon acts out its verb once and settles back (nothing loops, nothing moves on
+   its own). The trigger is the nearest control (a, button, label, summary, [role=button]) or any
+   ancestor marked .ic-host; .ic-play on an ancestor plays every icon inside it at once.
+   Transform origins are in the 24-unit grid. */
+
+.ic {
+  display: inline-block;
+  flex: none;
+  vertical-align: middle;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  --spring: linear(0, 0.25 6%, 0.7 13%, 1.05 21%, 1.16 27%, 1.11 34%, 1.01 44%, 0.97 52%, 1 64%, 1);
+  --swift: cubic-bezier(0.3, 0.7, 0.2, 1);
+}
+.ic * {
+  transform-box: view-box;
+}
+/* Parts that only exist while an icon is acting stay out of the picture at rest. */
+.ic .i-fx {
+  opacity: 0;
+}
+/* Marks an icon makes (a scribble, a line of text) draw in while it plays. They need
+   pathLength="1". */
+.ic .i-ink {
+  opacity: 0;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ic,
+  .ic * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,0 +1,870 @@
+/* Motion for the money and places set (sets/world.js). The trigger wrapper is the same in every set. */
+
+:where(a, button, label, summary, [role="button"], .ic-play, .ic-host):is(
+    :hover,
+    :focus-visible
+  )
+  .ic,
+.ic-play .ic {
+  &.ic-wallet .i-card {
+    transform-origin: 10.5px 6.5px;
+    animation: ic-wallet-card 820ms linear;
+  }
+  &.ic-wallet .i-stripe {
+    animation: ic-wallet-stripe 820ms linear;
+  }
+  &.ic-wallet .i-sides {
+    transform-origin: 10.5px 6.5px;
+    animation: ic-wallet-sides 820ms linear;
+  }
+  &.ic-wallet .i-body {
+    transform-origin: 12px 20.5px;
+    animation: ic-wallet-body 820ms ease-in-out;
+  }
+
+  &.ic-receipt .i-rows {
+    animation: ic-receipt-feed 900ms linear;
+  }
+  &.ic-receipt .i-row-1 {
+    animation: ic-receipt-out 900ms linear;
+  }
+  &.ic-receipt .i-fresh {
+    animation: ic-receipt-print 900ms linear;
+  }
+
+  &.ic-cart .i-item {
+    animation: ic-cart-item 860ms linear;
+  }
+  &.ic-cart .i-basket {
+    animation: ic-cart-catch 860ms linear;
+  }
+
+  &.ic-bag .i-handle {
+    animation: ic-bag-handle 900ms linear;
+  }
+  &.ic-bag .i-sack {
+    transform-origin: 12px 8px;
+    animation: ic-bag-sack 900ms linear;
+  }
+
+  &.ic-gift .i-lid {
+    transform-origin: 12px 10px;
+    animation: ic-gift-lid 820ms linear;
+  }
+  &.ic-gift .i-box {
+    transform-origin: 12px 21px;
+    animation: ic-gift-box 820ms linear;
+  }
+  &.ic-gift .i-bit {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ic-gift-bit-1 820ms linear;
+  }
+  &.ic-gift .i-bit-2 {
+    animation-name: ic-gift-bit-2;
+  }
+  &.ic-gift .i-bit-3 {
+    animation-name: ic-gift-bit-3;
+  }
+
+  &.ic-coin .i-toss {
+    animation: ic-coin-toss 900ms linear;
+  }
+  &.ic-coin .i-face {
+    transform-origin: 12px 12px;
+    animation: ic-coin-flip 900ms linear;
+  }
+  &.ic-coin .i-shadow {
+    transform-origin: 12px 22.5px;
+    animation: ic-coin-shadow 900ms linear;
+  }
+  &.ic-coin .i-glint {
+    transform-origin: 19.9px 3.6px;
+    animation: ic-coin-glint 900ms linear;
+  }
+
+  &.ic-building .i-lit {
+    animation: ic-building-low 1000ms steps(1, end);
+  }
+  &.ic-building .i-lit-wing {
+    animation-name: ic-building-wing;
+  }
+  &.ic-building .i-lit-top {
+    animation-name: ic-building-top;
+  }
+  &.ic-building .i-lit-late {
+    animation-name: ic-building-late;
+  }
+
+  &.ic-car .i-chassis {
+    transform-origin: 7px 16.5px;
+    animation: ic-car-rev 900ms linear;
+  }
+  &.ic-car .i-puff {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ic-car-puff 380ms ease-out 40ms both;
+  }
+  &.ic-car .i-puff-2 {
+    animation-delay: 330ms;
+  }
+
+  &.ic-plane .i-jet {
+    animation: ic-plane-surge 900ms linear;
+  }
+  &.ic-plane .i-roll {
+    transform-origin: 12px 12px;
+    animation: ic-plane-roll 900ms linear;
+  }
+  &.ic-plane .i-trail {
+    stroke-dasharray: 1;
+    animation: ic-plane-trail 900ms linear;
+  }
+
+  &.ic-map .i-panel-l {
+    transform-origin: 9px 12px;
+    animation: ic-map-fold 820ms linear;
+  }
+  &.ic-map .i-panel-r {
+    transform-origin: 15px 12px;
+    animation: ic-map-fold 820ms linear 60ms;
+  }
+  &.ic-map .i-here {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: ic-map-here 880ms linear;
+  }
+
+  &.ic-compass .i-case {
+    transform-origin: 12px 12px;
+    animation: ic-compass-case 950ms linear;
+  }
+  &.ic-compass .i-needle {
+    transform-origin: 12px 12px;
+    animation: ic-compass-needle 950ms linear;
+  }
+
+  &.ic-flag .i-cloth {
+    transform-origin: 6px 9.75px;
+    animation: ic-flag-hoist 1000ms linear;
+  }
+}
+
+/* The wallet squeezes, the card rises tilted with its sides stretching so it stays tucked in. */
+@keyframes ic-wallet-card {
+  0% {
+    transform: rotate(0) translateY(0);
+    animation-timing-function: ease-in-out;
+  }
+  10% {
+    transform: rotate(0) translateY(0.5px);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  36%,
+  48% {
+    transform: rotate(-9deg) translateY(-3.2px);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.5);
+  }
+  64% {
+    transform: rotate(0) translateY(0.5px);
+    animation-timing-function: ease-out;
+  }
+  78% {
+    transform: rotate(0) translateY(-0.4px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: rotate(0) translateY(0);
+  }
+}
+@keyframes ic-wallet-stripe {
+  0%,
+  16% {
+    opacity: 0;
+  }
+  28%,
+  52% {
+    opacity: 1;
+  }
+  62%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ic-wallet-sides {
+  0%,
+  10% {
+    opacity: 1;
+    transform: rotate(0) scaleY(0);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  36%,
+  48% {
+    opacity: 1;
+    transform: rotate(-9deg) scaleY(1);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.5);
+  }
+  64%,
+  100% {
+    opacity: 1;
+    transform: rotate(0) scaleY(0);
+  }
+}
+@keyframes ic-wallet-body {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  10% {
+    transform: scale(1.02, 0.95);
+  }
+  22%,
+  62% {
+    transform: scale(1);
+  }
+  70% {
+    transform: scale(1.03, 0.95);
+  }
+  84% {
+    transform: scale(0.99, 1.01);
+  }
+}
+
+/* The fresh row prints, then the paper feeds up one row with a small overshoot. The end frame
+   (rows up one, fresh row in the third slot) draws exactly the rest picture. */
+@keyframes ic-receipt-print {
+  0% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+  }
+  6% {
+    opacity: 1;
+    stroke-dashoffset: 1;
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  38%,
+  100% {
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ic-receipt-feed {
+  0%,
+  40% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1);
+  }
+  66% {
+    transform: translateY(-3.35px);
+    animation-timing-function: ease-in-out;
+  }
+  80%,
+  100% {
+    transform: translateY(-3px);
+  }
+}
+@keyframes ic-receipt-out {
+  0%,
+  40% {
+    opacity: 1;
+  }
+  52%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ic-cart-item {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.5);
+  }
+  10% {
+    opacity: 1;
+  }
+  36% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  47% {
+    transform: translateY(-1.6px);
+    animation-timing-function: ease-in;
+  }
+  57% {
+    transform: translateY(0.3px);
+  }
+  62%,
+  84% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+@keyframes ic-cart-catch {
+  0%,
+  36% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  42% {
+    transform: translateY(1.1px);
+    animation-timing-function: ease-in-out;
+  }
+  52% {
+    transform: translateY(-0.3px);
+    animation-timing-function: ease-in-out;
+  }
+  58% {
+    transform: translateY(0.5px);
+    animation-timing-function: ease-in-out;
+  }
+  70%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/* The hand takes the handle first; the bag follows a beat later, swings under it, and sits down. */
+@keyframes ic-bag-handle {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  12% {
+    transform: translateY(-1.5px);
+    animation-timing-function: ease-in-out;
+  }
+  30%,
+  60% {
+    transform: translateY(-3px);
+    animation-timing-function: ease-in;
+  }
+  74% {
+    transform: translateY(0.8px);
+    animation-timing-function: ease-out;
+  }
+  88%,
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes ic-bag-sack {
+  0%,
+  10% {
+    transform: translateY(0) rotate(0) scaleY(1);
+    animation-timing-function: cubic-bezier(0.3, 0.6, 0.3, 1);
+  }
+  30% {
+    transform: translateY(-3px) rotate(9deg) scaleY(1);
+    animation-timing-function: ease-in-out;
+  }
+  44% {
+    transform: translateY(-3px) rotate(-6deg) scaleY(1);
+    animation-timing-function: ease-in-out;
+  }
+  60% {
+    transform: translateY(-3px) rotate(2.5deg) scaleY(1);
+    animation-timing-function: ease-in;
+  }
+  74% {
+    transform: translateY(0.8px) rotate(0) scaleY(0.94);
+    animation-timing-function: ease-out;
+  }
+  88%,
+  100% {
+    transform: translateY(0) rotate(0) scaleY(1);
+  }
+}
+
+@keyframes ic-gift-box {
+  0% {
+    transform: scale(1);
+    animation-timing-function: ease-out;
+  }
+  14% {
+    transform: scale(1.04, 1.05);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  26%,
+  58% {
+    transform: scale(1);
+  }
+  64% {
+    transform: scale(1.03, 0.93);
+  }
+  78%,
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes ic-gift-lid {
+  0% {
+    transform: translateY(0) rotate(0);
+    animation-timing-function: ease-out;
+  }
+  14% {
+    transform: translateY(-0.5px) rotate(0);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  32%,
+  44% {
+    transform: translateY(-4.5px) rotate(-13deg);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.5);
+  }
+  60% {
+    transform: translateY(0) rotate(0);
+    animation-timing-function: ease-out;
+  }
+  70% {
+    transform: translateY(-0.9px) rotate(2deg);
+    animation-timing-function: ease-in;
+  }
+  80%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+}
+@keyframes ic-gift-bit-1 {
+  0%,
+  20% {
+    opacity: 0;
+    transform: translate(0, 1px) rotate(0);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  28% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 1;
+  }
+  58%,
+  100% {
+    opacity: 0;
+    transform: translate(-7px, -1.2px) rotate(-70deg);
+  }
+}
+@keyframes ic-gift-bit-2 {
+  0%,
+  22% {
+    opacity: 0;
+    transform: translate(0, 1px);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  30% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 1;
+  }
+  60%,
+  100% {
+    opacity: 0;
+    transform: translate(0, -2px);
+  }
+}
+@keyframes ic-gift-bit-3 {
+  0%,
+  24% {
+    opacity: 0;
+    transform: translate(0, 1px) rotate(0);
+    animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1);
+  }
+  32% {
+    opacity: 1;
+  }
+  52% {
+    opacity: 1;
+  }
+  62%,
+  100% {
+    opacity: 0;
+    transform: translate(7px, -2.2px) rotate(70deg);
+  }
+}
+
+@keyframes ic-coin-toss {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  6% {
+    transform: translateY(0.6px);
+    animation-timing-function: cubic-bezier(0.25, 0.7, 0.45, 1);
+  }
+  34% {
+    transform: translateY(-5.5px);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.75, 0.3);
+  }
+  62% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  72% {
+    transform: translateY(-1.1px);
+    animation-timing-function: ease-in;
+  }
+  82%,
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes ic-coin-flip {
+  0%,
+  6% {
+    transform: scaleX(1);
+    animation-timing-function: ease-in-out;
+  }
+  20% {
+    transform: scaleX(-1);
+    animation-timing-function: ease-in-out;
+  }
+  34% {
+    transform: scaleX(1);
+    animation-timing-function: ease-in-out;
+  }
+  48% {
+    transform: scaleX(-1);
+    animation-timing-function: ease-in-out;
+  }
+  62%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes ic-coin-shadow {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+  8%,
+  82% {
+    opacity: 0.35;
+  }
+  34% {
+    opacity: 0.2;
+    transform: scaleX(0.5);
+  }
+  62% {
+    opacity: 0.5;
+    transform: scaleX(1);
+  }
+}
+@keyframes ic-coin-glint {
+  0%,
+  64% {
+    opacity: 0;
+    transform: scale(0) rotate(0);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  74% {
+    opacity: 1;
+    transform: scale(1) rotate(45deg);
+    animation-timing-function: ease-in;
+  }
+  92%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3) rotate(90deg);
+  }
+}
+
+/* Floor by floor from the bottom, then out top-down; the corner office stays on late. */
+@keyframes ic-building-low {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  70% {
+    opacity: 1;
+  }
+  74% {
+    opacity: 0;
+  }
+}
+@keyframes ic-building-wing {
+  0% {
+    opacity: 0;
+  }
+  18%,
+  66% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0;
+  }
+}
+@keyframes ic-building-top {
+  0% {
+    opacity: 0;
+  }
+  28%,
+  62% {
+    opacity: 1;
+  }
+  66% {
+    opacity: 0;
+  }
+}
+@keyframes ic-building-late {
+  0% {
+    opacity: 0;
+  }
+  38% {
+    opacity: 1;
+  }
+  43% {
+    opacity: 0;
+  }
+  47%,
+  92% {
+    opacity: 1;
+  }
+  96% {
+    opacity: 0;
+  }
+}
+
+/* Each rev squats the rear and lifts the nose; the wheels stay planted. */
+@keyframes ic-car-rev {
+  0% {
+    transform: rotate(0);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  12% {
+    transform: rotate(-4.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  26% {
+    transform: rotate(0.8deg);
+    animation-timing-function: ease-in-out;
+  }
+  34% {
+    transform: rotate(0);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  46% {
+    transform: rotate(-6deg);
+    animation-timing-function: ease-in-out;
+  }
+  60% {
+    transform: rotate(1.4deg);
+    animation-timing-function: ease-in-out;
+  }
+  72% {
+    transform: rotate(-0.6deg);
+    animation-timing-function: ease-in-out;
+  }
+  84%,
+  100% {
+    transform: rotate(0);
+  }
+}
+@keyframes ic-car-puff {
+  0% {
+    opacity: 0;
+    transform: translate(0.6px, 0) scale(0.3);
+  }
+  20% {
+    opacity: 0.9;
+    transform: translate(0, -0.2px) scale(0.8);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-1.6px, -1.8px) scale(1.5);
+  }
+}
+
+/* In the plane's own frame (nose up): it eases back, surges forward and rolls through its wings. */
+@keyframes ic-plane-surge {
+  0% {
+    transform: translateY(0);
+    animation-timing-function: ease-out;
+  }
+  12% {
+    transform: translateY(0.7px);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+  50% {
+    transform: translateY(-2.2px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes ic-plane-roll {
+  0%,
+  14% {
+    transform: scaleX(1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.8, 0.6);
+  }
+  30% {
+    transform: scaleX(0.06);
+    animation-timing-function: cubic-bezier(0.2, 0.5, 0.4, 1);
+  }
+  48%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes ic-plane-trail {
+  0%,
+  44% {
+    opacity: 0;
+    stroke-dashoffset: 1;
+    animation-timing-function: ease-out;
+  }
+  48% {
+    opacity: 0.8;
+  }
+  70% {
+    opacity: 0.8;
+    stroke-dashoffset: 0;
+  }
+  94%,
+  100% {
+    opacity: 0;
+    stroke-dashoffset: -1;
+  }
+}
+
+@keyframes ic-map-fold {
+  0% {
+    transform: scaleX(1);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.7, 0.4);
+  }
+  28%,
+  40% {
+    transform: scaleX(0.1);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1.2);
+  }
+  64% {
+    transform: scaleX(1.12);
+    animation-timing-function: ease-in-out;
+  }
+  80% {
+    transform: scaleX(0.97);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes ic-map-here {
+  0%,
+  52% {
+    transform: scale(1);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  64% {
+    transform: scale(1.6);
+    animation-timing-function: ease-in-out;
+  }
+  78% {
+    transform: scale(0.85);
+    animation-timing-function: ease-in-out;
+  }
+  90%,
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* The case is turned away and back; the needle is dragged a little, then swings and hunts. */
+@keyframes ic-compass-case {
+  0% {
+    transform: rotate(0);
+    animation-timing-function: ease-out;
+  }
+  10% {
+    transform: rotate(10deg);
+    animation-timing-function: cubic-bezier(0.4, 0, 0.3, 1);
+  }
+  40%,
+  48% {
+    transform: rotate(-75deg);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1);
+  }
+  84%,
+  100% {
+    transform: rotate(0);
+  }
+}
+@keyframes ic-compass-needle {
+  0% {
+    transform: rotate(0);
+    animation-timing-function: ease-in-out;
+  }
+  14% {
+    transform: rotate(4deg);
+    animation-timing-function: ease-in-out;
+  }
+  38% {
+    transform: rotate(-28deg);
+    animation-timing-function: ease-in-out;
+  }
+  54% {
+    transform: rotate(20deg);
+    animation-timing-function: ease-in-out;
+  }
+  68% {
+    transform: rotate(-11deg);
+    animation-timing-function: ease-in-out;
+  }
+  80% {
+    transform: rotate(5deg);
+    animation-timing-function: ease-in-out;
+  }
+  90% {
+    transform: rotate(-1.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: rotate(0);
+  }
+}
+
+/* Down the pole, two hand-over-hand tugs back up, then the cloth ripples out. */
+@keyframes ic-flag-hoist {
+  0% {
+    transform: translateY(0) skewY(0);
+    animation-timing-function: ease-in;
+  }
+  16% {
+    transform: translateY(6px) skewY(-7deg);
+    animation-timing-function: ease-out;
+  }
+  26% {
+    transform: translateY(6px) skewY(2deg);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  36%,
+  42% {
+    transform: translateY(3px) skewY(-3deg);
+    animation-timing-function: cubic-bezier(0.3, 0.7, 0.2, 1);
+  }
+  54% {
+    transform: translateY(-0.4px) skewY(-4deg);
+    animation-timing-function: ease-in-out;
+  }
+  64% {
+    transform: translateY(0) skewY(5deg);
+    animation-timing-function: ease-in-out;
+  }
+  76% {
+    transform: translateY(0) skewY(-3deg);
+    animation-timing-function: ease-in-out;
+  }
+  88% {
+    transform: translateY(0) skewY(1.5deg);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: translateY(0) skewY(0);
+  }
+}
