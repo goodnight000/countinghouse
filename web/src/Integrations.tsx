@@ -51,7 +51,7 @@ export default function Integrations({ onSynced }: { onSynced?: () => void }) {
         <div><span className="sub">Connected</span><b>{data.filter(i => i.status !== 'error').length} of {data.length}</b></div>
         <div><span className="sub">Live API</span><b>{live} of {data.length}</b></div>
         <div><span className="sub">Records</span><b>{records.toLocaleString('en-US')}</b></div>
-        <div><span className="sub">Balances held</span><b>{money(balance)}</b></div>
+        <div><span className="sub">Net balance</span><b>{money(balance)}</b></div>
       </div>
 
       <div className="rows">

@@ -97,6 +97,7 @@ export function categorize(raw: RawTxn[]): Txn[] {
   for (const t of txns) if (t.amount < 0) byVendor.set(t.vendor, [...(byVendor.get(t.vendor) ?? []), -t.amount]);
   for (const t of txns) {
     if (t.amount >= 0 || ["Transfers", "Payroll", "Payroll Taxes"].includes(t.category)) continue;
+    if (learned.has(t.vendor.toLowerCase())) continue; // the founder already explained this vendor
     const hist = byVendor.get(t.vendor)!;
     const med = [...hist].sort((a, b) => a - b)[Math.floor(hist.length / 2)]!;
     if ((hist.length === 1 && -t.amount >= 5000) || (hist.length > 3 && -t.amount > 4 * med && -t.amount > 2000)) {

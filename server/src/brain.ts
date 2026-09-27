@@ -179,12 +179,26 @@ export function initBrain() {
     if (learned.size) { console.log(`[brain] loaded ${learned.size} learned rules`); state.rederive(); }
   }).catch(() => {}).finally(renderAll);
   // Include pre-existing notes (from the agent) in the mirror listing.
-  gbrain(["list", "--type", "note", "--limit", "200"]).then((out) => {
-    for (const line of out.trim().split("\n")) {
-      const [slug, type, date, title] = line.split("\t");
-      if (slug && type && !mirror.has(slug)) mirror.set(slug, { page: { slug, title: title ?? slug, type, updatedAt: date ?? "", excerpt: "" }, markdown: "" });
-    }
-  }).catch(() => {});
+  loadNotes();
+}
+
+// Notes written by the agent (remember tool) in earlier runs: list them, then pull each page's markdown.
+async function loadNotes() {
+  for (let i = 0; i < 4; i++) {
+    try {
+      const out = await gbrain(["list", "--type", "note", "--limit", "200"]);
+      for (const line of out.trim().split("\n")) {
+        const [slug, , , title] = line.split("\t");
+        if (!slug?.startsWith("notes/") || mirror.has(slug)) continue;
+        let md = "";
+        for (let j = 0; j < 4 && !md; j++) md = await gbrain(["get", slug]).catch(() => Bun.sleep(1500).then(() => ""));
+        const body = md.replace(/^---[\s\S]*?---\n/, "").replace(/[#*|>\[\]`_-]/g, " ").replace(/\s+/g, " ").trim();
+        const updatedAt = md.match(/updated(?:_at)?: '?([^'\n]+)/)?.[1] ?? new Date().toISOString();
+        mirror.set(slug, { page: { slug, title: title ?? slug, type: "note", updatedAt, excerpt: body.slice(0, 180) }, markdown: md });
+      }
+      return;
+    } catch (e) { console.error("[brain] loading notes, retrying:", String(e).slice(0, 120)); await Bun.sleep(2000 * (i + 1)); }
+  }
 }
 export const mirrorHas = (slug: string) => mirror.has(slug);
 void contractors;

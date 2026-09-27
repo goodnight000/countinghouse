@@ -257,3 +257,5 @@ button.row:hover, .row.click:hover { background: var(--hover); }
 .acct-row { font-size: var(--f-13); }
 .tx-row { min-height: 48px; padding-top: 7px; padding-bottom: 7px; }
 .tx-v span.ellip { display: block; font-size: 11px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row:focus-visible, .mem-item:focus-visible { outline-offset: -2px; }

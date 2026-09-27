@@ -6,9 +6,12 @@ export function Icon({ name, size = 18, label, className }: { name: string; size
   return <span className={'icw' + (className ? ' ' + className : '')} dangerouslySetInnerHTML={{ __html: icon(name, { size, label }) }} />
 }
 
+const cache = new Map<string, unknown>()
+
 // Fetch JSON from the real API; retries every 2s until the server answers.
+// Last response per path is cached so revisiting a screen renders instantly, then refreshes.
 export function useApi<T>(path: string | null) {
-  const [data, setData] = useState<T | null>(null)
+  const [data, setData] = useState<T | null>(() => (path ? (cache.get(path) as T) ?? null : null))
   const [error, setError] = useState<string | null>(null)
   const [tick, setTick] = useState(0)
   useEffect(() => {
@@ -18,7 +21,7 @@ export function useApi<T>(path: string | null) {
     const load = () =>
       fetch(path)
         .then(r => (r.ok ? r.json() : Promise.reject(new Error(`${r.status} ${r.statusText}`))))
-        .then(d => { if (alive) { setData(d); setError(null) } })
+        .then(d => { cache.set(path, d); if (alive) { setData(d); setError(null) } })
         .catch(e => { if (alive) { setError(String(e.message ?? e)); timer = window.setTimeout(load, 2000) } })
     load()
     return () => { alive = false; clearTimeout(timer) }

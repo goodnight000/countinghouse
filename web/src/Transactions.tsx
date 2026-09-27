@@ -3,7 +3,7 @@ import type { Category, Flag, Provider, Summary, Txn } from '../../shared/types'
 import { CATEGORIES, Icon, PROVIDERS, cents, categoryIcon, dateLong, dateShort, money, monthLong, providerIcon, providerName, useApi } from './lib'
 import { Loading } from './App'
 
-export const FLAGS: Record<Flag, { label: string; icon: string; tone: string }> = {
+const FLAGS: Record<Flag, { label: string; icon: string; tone: string }> = {
   missing_receipt: { label: 'Missing receipt', icon: 'receipt', tone: 'warn' },
   duplicate: { label: 'Duplicate', icon: 'copy', tone: 'bad' },
   unusual: { label: 'Unusual', icon: 'alert', tone: 'warn' },
@@ -31,8 +31,9 @@ export default function Transactions() {
   const rows = useMemo(() => (data ?? []).filter(t => flags.every(f => t.flags.includes(f))), [data, flags])
   const flagCount = (f: Flag) => (data ?? []).filter(t => t.flags.includes(f)).length
   const sel = rows.find(t => t.id === selId) ?? rows[0]
-  const totalIn = rows.reduce((a, t) => a + (t.amount > 0 ? t.amount : 0), 0)
-  const totalOut = rows.reduce((a, t) => a + (t.amount < 0 ? -t.amount : 0), 0)
+  const real = rows.filter(t => t.category !== 'Transfers')
+  const totalIn = real.reduce((a, t) => a + (t.amount > 0 ? t.amount : 0), 0)
+  const totalOut = real.reduce((a, t) => a + (t.amount < 0 ? -t.amount : 0), 0)
   const toggle = (f: Flag) => setFlags(fs => (fs.includes(f) ? fs.filter(x => x !== f) : [...fs, f]))
 
   return (
@@ -40,7 +41,7 @@ export default function Transactions() {
       <header className="page-head">
         <div>
           <h1>Transactions</h1>
-          <p className="num">{data ? `${rows.length} shown · ${money(totalIn)} in · ${money(totalOut)} out` : ' '}</p>
+          <p className="num">{data ? `${rows.length} shown · ${money(totalIn)} in · ${money(totalOut)} out, not counting transfers` : ' '}</p>
         </div>
       </header>
 
