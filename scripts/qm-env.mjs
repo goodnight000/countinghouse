@@ -26,7 +26,7 @@ const env = {
   CAPABILITY_SECRET: hex(), CONNECTOR_SECRET_KEY: hex(), CORE_SIGNING_SECRET: hex(), SKILL_SIGNING_SECRET: hex(),
   PORTAL_IDENTITY_SECRET: hex(), PORTAL_SESSION_SECRET: hex(), AUTH_TOKEN_SECRET: hex(), AUTH_CLIENT_SECRET: hex(),
   AUTH_SIGNING_JWK: jwk, AUTH_ALLOWED_EMAILS: email, AUTH_PASSWORD_USERS: `${email}:${hash}`, SMTP_HOST: "localhost",
-  OPENAI_API_KEY: key, PUBLIC_API_URL: "http://host.docker.internal:8080",
+  OPENAI_API_KEY: key, PUBLIC_API_URL: `http://host.docker.internal:${process.env.QM_BASE_PORT ?? 8080}`,
 };
 writeFileSync(path, Object.entries(env).map(([k, v]) => `${k}=${v}`).join("\n") + `\n# Demo sign-in: ${email} / ${password}\n`, { mode: 0o600 });
 console.log(`wrote qm/.env — sign in as ${email} / ${password}`);

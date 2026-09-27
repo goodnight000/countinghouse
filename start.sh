@@ -43,4 +43,4 @@ docker restart "qm-$(grep -oE '"orgId": "[^"]+"' qm/qm.config.jsonc | cut -d'"' 
 
 echo
 echo "Dashboard  http://localhost:5190"
-echo "Agent chat http://localhost:8081   ($(grep '^# Demo sign-in' qm/.env | cut -c3-))"
+echo "Agent chat $(grep -oE '"publicUrl": "[^"]+"' qm/qm.config.jsonc | cut -d'"' -f4)   ($(grep '^# Demo sign-in' qm/.env | cut -c3-))"
