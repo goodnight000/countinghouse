@@ -55,8 +55,9 @@
     // Local demo only: sign in automatically as the admin on localhost.
     "portal": { "NODE_ENV": "development", "PORTAL_LOCAL_AUTH_BYPASS": "1", "PORTAL_DEV_PRINCIPAL": "gdragonjcm@gmail.com" } },
 
-  // Core with a one-line upstream fix so local sandboxes work when core runs in Docker (images/core).
-  "imageOverrides": { "core": "countinghouse/qm-core:local" },
+  // Core with a one-line upstream fix so local sandboxes work when core runs in Docker (images/core),
+  // and the web UI with an Accounting sidebar tab that shows the dashboard (images/web-ui).
+  "imageOverrides": { "core": "countinghouse/qm-core:local", "web-ui": "countinghouse/qm-web-ui:local" },
 
   // One Docker container per scope as the agent computer.
   "sandbox": { "backend": "local" }

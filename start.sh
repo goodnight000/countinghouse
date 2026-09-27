@@ -34,6 +34,7 @@ if docker context show 2>/dev/null | grep -q colima; then
   QM_DOCKER_SOCKET_GID=$(colima ssh -- stat -c %g /var/run/docker.sock); export QM_DOCKER_SOCKET_GID
 fi
 docker build -q --platform linux/amd64 -t countinghouse/qm-core:local images/core >/dev/null
+docker build -q --platform linux/amd64 -t countinghouse/qm-web-ui:local images/web-ui >/dev/null
 npm exec qm -- up || npm exec qm -- up   # core can time out on first boot under emulation
 cd "$ROOT"
 
