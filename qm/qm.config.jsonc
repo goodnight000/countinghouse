@@ -1,0 +1,55 @@
+{
+  // The deployment contract major this directory conforms to.
+  "contract": 1,
+
+  // Short identifier for your organization; app and container names derive from it.
+  "orgId": "countinghouse",
+
+  // The one public address of the deployment; the service URLs derive from it.
+  "publicUrl": "http://localhost:8082",
+
+  // Optional bot identity. "botName" is what the bot is called everywhere users
+  // see it — the Slack app, the prompt identity, sign-in pages — and "orgName"
+  // is how the bot refers to your organization. Both default to neutral values
+  // ("qm" / "this organization") and can be changed live from the Admin page.
+  "botName": "countinghouse",
+  "orgName": "Lumen Labs",
+
+  // Where to deploy: "docker" runs local containers, "fly" deploys Fly apps,
+  // and "aws" runs the control plane on ECS and agent computers on Lambda MicroVMs.
+  "target": "docker",
+
+  // The vendor supplying the base model: "anthropic", "openai", or "openrouter"
+  // (one key, many models). Naming one makes that vendor's API key a required
+  // deployment secret and points the base model at that vendor: `qm setup`
+  // collects the key, `qm doctor` proves the provider accepts it, and `qm up`
+  // refuses a stack that cannot serve an agent turn. Delete this line to leave
+  // the base model unset and have an administrator add the key from the Admin
+  // page after deploy instead.
+  "modelProvider": "openrouter",
+
+  // Optional base model id, passed to the harness (e.g. "claude-opus-4-6").
+  // Omit it and the deployment uses the default model for the provider above.
+  // It must be a model that provider can bill.
+  // "model": "",
+
+  // First-party services to run. The full set: "core" (the agent runtime and API,
+  // always required), "slack" (the Slack surface, runs inside the core process),
+  // "web-ui" (a browser chat UI), "admin" (the operator dashboard), "portal"
+  // (the public sign-in front door), and "auth" (the built-in sign-in broker that
+  // emails one-time links; drop it to sign in through an external OIDC provider).
+  "services": ["core", "web-ui", "admin"],
+
+  // Extra plugins to run alongside the services. A prebuilt image runs with
+  // { "name": "linear", "image": "ghcr.io/you/qm-linear:1.0" }. A plugin with a
+  // Dockerfile at plugins/<name>/ in this directory needs no entry here at all.
+  "plugins": [],
+
+  // Extra directories of SKILL.md files, mounted into the agent.
+  "skills": [],
+
+  // Non-secret env overrides, per service. HARNESS "pi" runs real agent turns
+  // against the base model selected by "modelProvider" above. "mock" runs the
+  // whole stack with fake turns and no model calls.
+  "env": { "core": { "HARNESS": "pi" } }
+}
